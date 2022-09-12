@@ -1,84 +1,36 @@
 const express = require("express")
 const router = express.Router()
-const NewStarUser = require("../models/register")
+const NewStarUser = require("../models/registerSchema")
 const bcrypt = require("bcrypt")
-
-router.get("/", (req, res) => {
-    res.status(201).send("Welcome to Home Page")
-})
-
-router.post("/register", async (req, res) => {
-    try {
-        // console.log(req.body);
-
-        const hashedPass = await bcrypt.hash(req.body.password, 10)
-
-        const newuser = new NewStarUser({
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            email: req.body.email,
-            password: hashedPass
-        })
-        const registerd = await newuser.save()
-        res.status(201).send({
-            error: false,
-            error_code: 201,
-            message: "Registered Sucessfully",
-            results: registerd
-        })
-
-    } catch (err) {
-        console.log(err);
-        res.status(401).send({
-            error: true,
-            error_code: 401,
-            message: "Wrong Input",
-            // results: registerd
-        })
-    }
-})
+const multer = require("multer")
+const upload = require("../middleware/upload")
+const {home , register, login, logout, forgotPassword, verifyOtp,updatePassword, changePassword} = require("../controllers/user/userRoutes")
 
 
-router.post("/login", async (req, res) => {
-    try {
-        console.log(req.body);
-        const email = req.body.email;
-        const password = req.body.password;
-        const verifyUser = await NewStarUser.findOne({ email: email })
+router.get("/home",home)
 
-        const token = await verifyUser.generateAuthToken()
+// const cpUpload = upload.any([{ name: 'imageOne', maxCount: 1 }, { name: 'imageTwo', maxCount: 1 }])
 
-        res.cookie("jwt", token, {
-            expires: new Date(Date.now() + (10 * 60000))
-        })
+// router.post("/register",cpUpload ,register)
 
-        const isPasswordMatched = bcrypt.compare(password, verifyUser.password)
-        if (isPasswordMatched) {
-            res.status(201).send({
-                error: true,
-                error_code: 401,
-                message: "Logged In",
-                results: verifyUser
-            })
-        } else {
-            res.status(201).send({
-                error: true,
-                error_code: 401,
-                message: "Wrong Input",
-                // results: registerd
-            })
-        }
 
-    } catch (err) {
-        console.log(err);
-        res.status(401).send({
-            error: true,
-            error_code: 401,
-            message: "Wrong Credential",
-            // results: registerd
-        })
-    }
-})
+router.post("/register",upload.any() ,register)
+
+// router.post("/register",upload.single('imageOne') ,register)
+
+router.post("/login", login)
+
+router.get("/logout",logout)
+
+router.post("/forgotPassword",forgotPassword)
+
+router.post("/verifyOtp",verifyOtp)
+
+router.post("/updatePassword",updatePassword)
+
+router.post("/changePassword",changePassword)
+
+
 
 
 module.exports = router;
