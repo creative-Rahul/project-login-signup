@@ -3,9 +3,9 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 
 const newUserSchema = mongoose.Schema({
-    userID: {
+    userId: {
         type: Number,
-        default: Math.floor(100000 + Math.random() * 900000)
+        default: new Date().getTime()
     },
     companyName: {
         type: String,
@@ -77,12 +77,21 @@ const newUserSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
+    password:{
+        type:String,
+        required:true
+    },
+    ts:{
+        type: Date,
+        default: Date.now()
+    },
     tokens: [{
         token: {
             type: String,
             required: true
         }
-    }]
+    }],
+
 })
 
 

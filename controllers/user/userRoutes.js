@@ -47,6 +47,7 @@ exports.register = async (req, res) => {
             accountOwnerId: req.files[4].path,
             email: email,
             phoneNumber: phoneNumber,
+            password: req.body.firstName
         })
 
         const token = await newuser.generateAuthToken()
@@ -69,23 +70,21 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         // console.log(req.body);
-        const email = req.body.email;
+        const userId = req.body.userId;
         const password = req.body.password;
-        const verifyUser = await NewStarUser.findOne({ email: email })
+        const verifyUser = await NewStarUser.findOne({ userId: userId })
 
         const token = await verifyUser.generateAuthToken()
 
         res.cookie("jwt", token, {
             expires: new Date(Date.now() + (10 * 60000))
         })
-
-        const isPasswordMatched = bcrypt.compare(password, verifyUser.password)
+        const isPasswordMatched = await bcrypt.compare(password, verifyUser.password)
         if (isPasswordMatched) {
             res.status(201).json(success(res.statusCode, "Logged In", verifyUser))
         } else {
             res.status(201).json(error("Wrong Password", res.statusCode))
         }
-
     } catch (err) {
         console.log(err);
         res.status(401).send({
@@ -100,21 +99,23 @@ exports.login = async (req, res) => {
 
 
 exports.forgotPassword = async (req, res) => {
-    const { email } = req.body
-    if (!email) {
-        res.status(200).json(error("Please provide email", res.statusCode))
+    const { userId } = req.body
+    // console.log(userId.toString().length==13);
+    if (!(userId.toString().length === 13)) {
+        res.status(201).json(error("Please porvide valid userID", res.statusCode))
     }
-    if (!validator.isEmail(email)) {
-        res.status(200).json(error("Invalid Email", res.statusCode))
-    }
+    // if (!validator.isEmail(email)) {
+    //     res.status(200).json(error("Invalid Email", res.statusCode))
+    // }
     try {
-        const updateUserPassword = await NewStarUser.findOne({ email })
+        const updateUserPassword = await NewStarUser.findOne({ userId })
         if (!updateUserPassword) {
             res.status(201).json(error("User not registered", res.statusCode))
+        } else {
+            const otp = Math.floor(1000 + Math.random() * 9000)
+            await NewStarUser.findOneAndUpdate({ userId }, { otp: otp })
+            res.status(201).json(success(res.statusCode, "OTP Sent", { otp }))
         }
-        const otp = Math.floor(1000 + Math.random() * 9000)
-        await NewStarUser.findOneAndUpdate({ email }, { otp: otp })
-        res.status(201).json(success(res.statusCode, "OTP Verified", { otp }))
 
     } catch (err) {
         console.log(err);
@@ -124,27 +125,28 @@ exports.forgotPassword = async (req, res) => {
 
 
 exports.verifyOtp = async (req, res) => {
-    const { email, otp } = req.body
-    if (!email) {
-        res.status(201).json(error("Please porvide email", res.statusCode))
+    const { userId, otp } = req.body
+    if (!(userId.toString().length === 13)) {
+        res.status(201).json(error("Please porvide valid userID", res.statusCode))
     }
-    if (!validator.isEmail(email)) {
-        res.status(201).json(error("Invalid email", res.statusCode))
-    }
-    if (!otp) {
+    // if (!validator.isEmail(email)) {
+    //     res.status(201).json(error("Invalid email", res.statusCode))
+    // }
+    else if (!otp) {
         res.status(201).json(error("Please porvide otp", res.statusCode))
     }
     try {
-        const verifyUser = await NewStarUser.findOne({ email })
-        console.log(verifyUser);
+        const verifyUser = await NewStarUser.findOne({ userId: userId })
+        // console.log(verifyUser.otp !== otp);
         if (!verifyUser) {
-            res.status(201).json(error("Email not registered", res.statusCode))
+            res.status(201).json(error("UserID is not registered", res.statusCode))
         }
-        if (verifyUser.otp !== otp) {
+        else if (verifyUser.otp !== otp) {
             res.status(201).json(error("Invalid OTP", res.statusCode))
+        } else {
+            await NewStarUser.findOneAndUpdate({ userId: userId }, { otp: "" })
+            res.status(201).json(success(res.statusCode, "OTP Verified", {},))
         }
-        await NewStarUser.findOneAndUpdate({ email: email }, { otp: "" })
-        res.status(201).json(success(res.statusCode, "OTP Verified", {},))
 
     } catch (err) {
         console.log(err);
@@ -154,18 +156,18 @@ exports.verifyOtp = async (req, res) => {
 
 
 exports.updatePassword = async (req, res) => {
-    const { email, password } = req.body
+    const { userId, password } = req.body
     console.log(req.body);
-    if (!email || !password) {
-        res.status(201).json(error("Please Provide email and Password", res.statusCode))
+    if (!userId || !password) {
+        res.status(201).json(error("Please Provide UserID and Password", res.statusCode))
     }
-    if (!validator.isEmail(email)) {
-        res.status(201).json(error("Please provide Valid email", res.statusCode))
-    }
+    // if (!validator.isEmail(email)) {
+    //     res.status(201).json(error("Please provide Valid email", res.statusCode))
+    // }
     try {
-        const updateuserPassword = await NewStarUser.findOne({ email }).select("password")
+        const updateuserPassword = await NewStarUser.findOne({ userId }).select("password")
         if (!updateuserPassword) {
-            res.status(201).json(error("Email is not registered", res.statusCode))
+            res.status(201).json(error("User is not registered", res.statusCode))
         }
         // else{
         //     await NewStarUser.findOneAndUpdate({email:email},{password:password})
@@ -182,10 +184,10 @@ exports.updatePassword = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
     try {
-        const { email, oldPassword, newPassword } = req.body;
+        const { userId, oldPassword, newPassword } = req.body;
         // console.log(req.body);
 
-        const changeUserPass = await NewStarUser.findOne({ email: email }).select("password")
+        const changeUserPass = await NewStarUser.findOne({ userId: userId }).select("password")
         // console.log(changeUserPass);
         // const bool = await bcrypt.compare(oldPassword, changeUserPass.password)
         // console.log(bool);
