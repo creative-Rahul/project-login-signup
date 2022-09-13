@@ -9,13 +9,7 @@ const {home , register, login, logout, forgotPassword, verifyOtp,updatePassword,
 
 router.get("/home",home)
 
-// const cpUpload = upload.any([{ name: 'imageOne', maxCount: 1 }, { name: 'imageTwo', maxCount: 1 }])
-
-// router.post("/register",cpUpload ,register)
-
-
 router.post("/register",upload.any() ,register)
-
 // router.post("/register",upload.single('imageOne') ,register)
 
 router.post("/login", login)

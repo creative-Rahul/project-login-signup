@@ -31,11 +31,7 @@ const newUserSchema = mongoose.Schema({
         type: Number,
         required: true,
     },
-    federalTaxID: {
-        type: String,
-        // required:true
-    },
-    businessLicense: {
+    federalTaxId: {
         type: String,
         // required:true
     },
@@ -51,6 +47,11 @@ const newUserSchema = mongoose.Schema({
         type: String,
         // required: true,
     },
+    firstName: {
+        type: String,
+        required: true,
+        min: 3
+    },
     lastName: {
         type: String,
         required: true,
@@ -58,7 +59,7 @@ const newUserSchema = mongoose.Schema({
     },
     accountOwnerId:{
         type:String,
-        required:true
+        // required:true
     },
     email: {
         type: String,

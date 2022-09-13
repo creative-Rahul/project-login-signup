@@ -17,40 +17,41 @@ exports.register = async (req, res) => {
         // console.log(req.files[0])
         // console.log(req.files[1])
         // console.log(req.file[1])
-        const { companyName, dba, addressLine, city, state, zipcode, firstName, lastName, email, password ,phoneNumber} = req.body;
-        if(!validator.isAlpha(firstName)){
-            res.status(201).json(error("Please enter valid name",res.statusCode))
+        const { companyName, dba, addressLine, city, state, zipcode, firstName, lastName, email, phoneNumber } = req.body;
+
+        if (!validator.isAlpha(firstName)) {
+            res.status(201).json(error("Please enter valid name", res.statusCode))
         }
-        if(!validator.isEmail(email)){
-            res.status(201).json(error("please enter valid email",res.statusCode))
+        if (!validator.isEmail(email)) {
+            res.status(201).json(error("please enter valid email", res.statusCode))
+        }
+        const verifyEmail = await NewStarUser.findOne({ email: email });
+        // console.log(!verifyEmail);
+        if (verifyEmail) {
+            return res.status(200).json(error("Email Already Registered", res.statusCode));
         }
 
         const newuser = new NewStarUser({
-            companyName:companyName,
-            dba:dba,
-            addressLine:addressLine,
-            city:city,
-            state:state,
-            zipcode:zipcode,
+            companyName: companyName,
+            dba: dba,
+            addressLine: addressLine,
+            city: city,
+            state: state,
+            zipcode: zipcode,
             federalTaxId: req.files[0].path,
             businessLicense: req.files[1].path,
-            salesTaxId : req.files[2].path,
-            tobaccoLicence : req.files[3].path,
+            salesTaxId: req.files[2].path,
+            tobaccoLicence: req.files[3].path,
             firstName: firstName,
             lastName: lastName,
-            accountOwnerId : req.files[4].path,
+            accountOwnerId: req.files[4].path,
             email: email,
-            phoneNumber : phoneNumber,
+            phoneNumber: phoneNumber,
         })
 
         const token = await newuser.generateAuthToken()
-        const verifyEmail = await NewStarUser.findOne({email});
-        if(!verifyEmail){
-            res.status(201).json(error("Email already exist",res.statusCode))
-        }else{
-            const registerd = await newuser.save()
-            res.status(201).json(success(res.statusCode, "Registered Successfully", registerd))
-        }
+        const registerd = await newuser.save()
+        res.status(201).json(success(res.statusCode, "Registered Successfully", registerd))
 
     } catch (err) {
         console.log(err);
