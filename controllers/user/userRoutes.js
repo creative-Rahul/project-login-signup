@@ -30,6 +30,11 @@ exports.register = async (req, res) => {
         if (verifyEmail) {
             return res.status(200).json(error("Email Already Registered", res.statusCode));
         }
+        const federalTaxId = req.files[0].path
+        const businessLicense = req.files[1].path
+        const salesTaxId = req.files[2].path
+        const tobaccoLicence = req.files[4].path
+        const accountOwnerId= req.files[3].path
 
         const newuser = new NewStarUser({
             companyName: companyName,
@@ -38,13 +43,13 @@ exports.register = async (req, res) => {
             city: city,
             state: state,
             zipcode: zipcode,
-            federalTaxId: req.files[0].path,
-            businessLicense: req.files[1].path,
-            salesTaxId: req.files[2].path,
-            tobaccoLicence: req.files[3].path,
+            federalTaxId: federalTaxId,
+            businessLicense: businessLicense,
+            salesTaxId: salesTaxId,
+            tobaccoLicence: tobaccoLicence,
             firstName: firstName,
             lastName: lastName,
-            accountOwnerId: req.files[4].path,
+            accountOwnerId: accountOwnerId,
             email: email,
             phoneNumber: phoneNumber,
             password: req.body.firstName
