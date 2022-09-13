@@ -34,7 +34,7 @@ exports.register = async (req, res) => {
         const businessLicense = req.files[1].path
         const salesTaxId = req.files[2].path
         const tobaccoLicence = req.files[4].path
-        const accountOwnerId= req.files[3].path
+        const accountOwnerId = req.files[3].path
 
         const newuser = new NewStarUser({
             companyName: companyName,
@@ -105,23 +105,18 @@ exports.login = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
     const { userId } = req.body
-    // console.log(userId.toString().length==13);
-    if (!(userId.toString().length === 13)) {
-        res.status(201).json(error("Please porvide valid userID", res.statusCode))
-    }
-    // if (!validator.isEmail(email)) {
-    //     res.status(200).json(error("Invalid Email", res.statusCode))
-    // }
     try {
         const updateUserPassword = await NewStarUser.findOne({ userId })
-        if (!updateUserPassword) {
+        if (!(userId.toString().length === 13)) {
+            res.status(201).json(error("Please porvide valid userID", res.statusCode))
+        }
+        else if (!updateUserPassword) {
             res.status(201).json(error("User not registered", res.statusCode))
         } else {
             const otp = Math.floor(1000 + Math.random() * 9000)
             await NewStarUser.findOneAndUpdate({ userId }, { otp: otp })
             res.status(201).json(success(res.statusCode, "OTP Sent", { otp }))
         }
-
     } catch (err) {
         console.log(err);
         res.status(201).json(error("error", res.statusCode))
@@ -131,19 +126,16 @@ exports.forgotPassword = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
     const { userId, otp } = req.body
-    if (!(userId.toString().length === 13)) {
-        res.status(201).json(error("Please porvide valid userID", res.statusCode))
-    }
-    // if (!validator.isEmail(email)) {
-    //     res.status(201).json(error("Invalid email", res.statusCode))
-    // }
-    else if (!otp) {
-        res.status(201).json(error("Please porvide otp", res.statusCode))
-    }
     try {
         const verifyUser = await NewStarUser.findOne({ userId: userId })
         // console.log(verifyUser.otp !== otp);
-        if (!verifyUser) {
+        if (!(userId.toString().length === 13)) {
+            res.status(201).json(error("Please porvide valid userID", res.statusCode))
+        }
+        else if (!otp) {
+            res.status(201).json(error("Please porvide otp", res.statusCode))
+        }
+        else if (!verifyUser) {
             res.status(201).json(error("UserID is not registered", res.statusCode))
         }
         else if (verifyUser.otp !== otp) {
@@ -152,38 +144,36 @@ exports.verifyOtp = async (req, res) => {
             await NewStarUser.findOneAndUpdate({ userId: userId }, { otp: "" })
             res.status(201).json(success(res.statusCode, "OTP Verified", {},))
         }
-
     } catch (err) {
         console.log(err);
         res.status(403).json(error("Please provide right Credential", res.statusCode))
     }
+
 }
 
 
 exports.updatePassword = async (req, res) => {
     const { userId, password } = req.body
-    console.log(req.body);
+    // console.log(req.body);
     if (!userId || !password) {
         res.status(201).json(error("Please Provide UserID and Password", res.statusCode))
     }
-    // if (!validator.isEmail(email)) {
-    //     res.status(201).json(error("Please provide Valid email", res.statusCode))
-    // }
-    try {
-        const updateuserPassword = await NewStarUser.findOne({ userId }).select("password")
-        if (!updateuserPassword) {
-            res.status(201).json(error("User is not registered", res.statusCode))
-        }
-        // else{
-        //     await NewStarUser.findOneAndUpdate({email:email},{password:password})
-        // }
-        updateuserPassword.password = password
-        await updateuserPassword.save()
-        res.status(201).json(success(res.statusCode, "Password Updated Successfully", updateuserPassword))
+    else {
+        try {
+            const updateuserPassword = await NewStarUser.findOne({ userId }).select("password")
 
-    } catch (err) {
-        console.log(err);
-        res.status(401).json(error("Invalid", res.statusCode))
+            if (!updateuserPassword) {
+                res.status(201).json(error("User is not registered", res.statusCode))
+            }
+            else {
+                updateuserPassword.password = password
+                await updateuserPassword.save()
+                res.status(201).json(success(res.statusCode, "Password Updated Successfully", updateuserPassword))
+            }
+        } catch (err) {
+            console.log(err);
+            res.status(401).json(error("Invalid", res.statusCode))
+        }
     }
 }
 
@@ -193,13 +183,9 @@ exports.changePassword = async (req, res) => {
         // console.log(req.body);
 
         const changeUserPass = await NewStarUser.findOne({ userId: userId }).select("password")
-        // console.log(changeUserPass);
-        // const bool = await bcrypt.compare(oldPassword, changeUserPass.password)
-        // console.log(bool);
         if (!await changeUserPass.passwordChange(oldPassword, changeUserPass.password)) {
             res.status(201).json(error("Invalid old Password", res.statusCode))
         }
-        // console.log(changeUserPass.password);
         else {
             changeUserPass.password = newPassword
             await changeUserPass.save()
@@ -228,7 +214,7 @@ exports.logout = async (req, res) => {
         res.clearCookie("jwt")
         console.log("Logout Successfully");
         await req.user.save()
-        res.render("login")
+        res.status(201).json(success(res.statusCode,"Logged out Successfully",{}))
     } catch (error) {
         res.status(500).send(error)
     }
