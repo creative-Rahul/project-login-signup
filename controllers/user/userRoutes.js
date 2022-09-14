@@ -33,7 +33,7 @@ exports.register = async (req, res) => {
         const federalTaxId = req.files[0].path
         const businessLicense = req.files[1].path
         const salesTaxId = req.files[2].path
-        const tobaccoLicence = req.files[4].path
+        const tobaccoLicence = req.files[4]?.path
         const accountOwnerId = req.files[3].path
 
         const newuser = new NewStarUser({
