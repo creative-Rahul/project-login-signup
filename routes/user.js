@@ -1,12 +1,13 @@
 const express = require("express")
 const router = express.Router()
-const NewStarUser = require("../models/registerSchema")
+const NewStarUser = require("../models/adminModels/registerSchema")
 const bcrypt = require("bcrypt")
 const multer = require("multer")
 const upload = require("../middleware/upload")
 const jwtAuth = require("../middleware/jwtAuth")
 const {home , register, login, logout, forgotPassword, verifyOtp,updatePassword, changePassword} = require("../controllers/user/userRoutes")
 
+const{addProduct} = require("../controllers/user/productControl")
 
 router.get("/home",home)
 
@@ -27,6 +28,8 @@ router.post("/changePassword",changePassword)
 
 
 router.post("/logout",jwtAuth,logout)
+
+router.post("/addProduct",upload.array('productImage',4),addProduct)
 
 
 
