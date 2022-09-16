@@ -19,11 +19,12 @@ app.use(cors())
 app.use(cookieParser())
 app.use(compression())
 
-const user = require("./routes/user")
+const userRoutes = require("./routes/userRoutes")
+const adminRoutes = require("./routes/adminRoutes")
 
-app.use("/user",user)
+app.use("/user",userRoutes)
 
-
+app.use("/api/admin", adminRoutes);
 
 
 

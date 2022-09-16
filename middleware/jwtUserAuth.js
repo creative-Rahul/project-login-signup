@@ -1,11 +1,11 @@
 const jwt = require("jsonwebtoken")
-const NewStarUser = require("../models/adminModels/registerSchema")
+const NewStarUser = require("../models/userModels/registerSchema")
 
-const auth = async (req,res,next)=>{
+const userAuth = async (req,res,next)=>{
     try {
         const token = req.cookies.jwt;
         const verifyUser = jwt.verify(token,"thisismyjsonwebtoken")
-        // console.log(verifyUser);
+        console.log(verifyUser);
         const user = await NewStarUser.findOne({_id:verifyUser._id})
         // console.log(user);
 
@@ -18,4 +18,4 @@ const auth = async (req,res,next)=>{
     }
 }
 
-module.exports = auth;
+module.exports = userAuth;

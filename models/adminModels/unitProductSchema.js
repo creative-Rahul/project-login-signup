@@ -13,10 +13,10 @@ const unitProductSchema = mongoose.Schema({
         type:String,
         default : "Admin"
     },
-    productImage:{
+    productImage:[{
         type:String,
-        
-    }
+
+    }]
 
 })
 

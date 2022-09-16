@@ -100,7 +100,7 @@ newUserSchema.methods.passwordChange = async (plainPassword, hashedPassword) => 
 }
 
 
-newUserSchema.methods.generateAuthToken = async function () {
+newUserSchema.methods.generateUserAuthToken = async function () {
     try {
         const token = jwt.sign({ _id: this._id }, "thisismyjsonwebtoken")
         this.tokens = this.tokens.concat({ token: token });

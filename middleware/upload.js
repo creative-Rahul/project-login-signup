@@ -1,5 +1,24 @@
 const { success, error } = require("../service_response/userApiResponse")
 const multer = require("multer")
+const fs = require("fs")
+
+
+function createAdminUserImagePath(req,res,next){
+    console.log(req.body);
+    fs.existsSync("./public/images", function(exist){
+        if(exist){
+            next()
+        }else{
+            fs.mkdirSync("./public/images",{recursive:true}, function(err){
+                if(err){
+                    console.log("Error in file creation");
+                    next()
+                }
+                next()
+            })
+        }
+    })
+}
 
 const storageDisk = multer.diskStorage({
     destination : (req,res,cb)=>{

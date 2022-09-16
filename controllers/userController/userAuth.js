@@ -1,5 +1,5 @@
 const validator = require("validator")
-const NewStarUser = require("../../models/adminModels/registerSchema")
+const NewStarUser = require("../../models/userModels/registerSchema")
 const bcrypt = require("bcrypt")
 const res = require("express/lib/response")
 const { success, error } = require("../../service_response/userApiResponse")
@@ -20,10 +20,10 @@ exports.register = async (req, res) => {
         const { companyName, dba, addressLine, city, state, zipcode, firstName, lastName, email, phoneNumber } = req.body;
 
         if (!validator.isAlpha(firstName)) {
-            res.status(201).json(error("Please enter valid name", res.statusCode))
+            return res.status(201).json(error("Please enter valid name", res.statusCode))
         }
         if (!validator.isEmail(email)) {
-            res.status(201).json(error("please enter valid email", res.statusCode))
+            return res.status(201).json(error("please enter valid email", res.statusCode))
         }
         const verifyEmail = await NewStarUser.findOne({ email: email });
         // console.log(!verifyEmail);
@@ -55,7 +55,7 @@ exports.register = async (req, res) => {
             password: req.body.firstName
         })
 
-        const token = await newuser.generateAuthToken()
+        const token = await newuser.generateUserAuthToken()
         const registerd = await newuser.save()
         res.status(201).json(success(res.statusCode, "Registered Successfully", registerd))
 
@@ -75,11 +75,12 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         // console.log(req.body);
-        const userId = req.body.userId;
+        const email = req.body.email;
         const password = req.body.password;
-        const verifyUser = await NewStarUser.findOne({ userId: userId })
 
-        const token = await verifyUser.generateAuthToken()
+        const verifyUser = await NewStarUser.findOne({ email: email })
+
+        const token = await verifyUser.generateUserAuthToken()
 
         res.cookie("jwt", token, {
             expires: new Date(Date.now() + (10 * 60000))
@@ -104,19 +105,19 @@ exports.login = async (req, res) => {
 
 
 exports.forgotPassword = async (req, res) => {
-    const { email } = req.body
-    if (!validator.isEmail(email)) {
-        res.status(201).json(error("Please porvide valid email", res.statusCode))
-    }
     try {
+        const { email } = req.body
+        if (!validator.isEmail(email)) {
+            return res.status(201).json(error("Please porvide valid email", res.statusCode))
+        }
         const updateUserPassword = await NewStarUser.findOne({ email })
         if (!updateUserPassword) {
-            res.status(201).json(error("User not registered", res.statusCode))
-        } else {
-            const otp = Math.floor(1000 + Math.random() * 9000)
-            await NewStarUser.findOneAndUpdate({ email }, { otp: otp })
-            res.status(201).json(success(res.statusCode, "OTP Sent", { otp }))
+            return res.status(201).json(error("User not registered", res.statusCode))
         }
+        const otp = Math.floor(1000 + Math.random() * 9000)
+        await NewStarUser.findOneAndUpdate({ email }, { otp: otp })
+        res.status(201).json(success(res.statusCode, "OTP Sent", { otp }))
+
     } catch (err) {
         console.log(err);
         res.status(201).json(error("error", res.statusCode))
@@ -125,29 +126,28 @@ exports.forgotPassword = async (req, res) => {
 
 
 exports.verifyOtp = async (req, res) => {
-    const { email, otp } = req.body
-    if (!validator.isEmail(email)) {
-        res.status(201).json(error("Email is invalid", res.statusCode))
-    }
-
     try {
+        const { email, otp } = req.body
+        if (!validator.isEmail(email)) {
+            return res.status(201).json(error("Email is invalid", res.statusCode))
+        }
         const verifyUser = await NewStarUser.findOne({ email: email })
         // console.log(verifyUser.otp !== otp);
         // if (!(userId.toString().length === 13)) {
         //     res.status(201).json(error("Please porvide valid userID", res.statusCode))
         // }
         if (!otp) {
-            res.status(201).json(error("Please porvide otp", res.statusCode))
+            return res.status(201).json(error("Please porvide otp", res.statusCode))
         }
-        else if (!verifyUser) {
-            res.status(201).json(error("UserID is not registered", res.statusCode))
+        if (!verifyUser) {
+            return res.status(201).json(error("UserID is not registered", res.statusCode))
         }
-        else if (verifyUser.otp !== otp) {
-            res.status(201).json(error("Invalid OTP", res.statusCode))
-        } else {
-            await NewStarUser.findOneAndUpdate({ email: email }, { otp: "" })
-            res.status(201).json(success(res.statusCode, "OTP Verified", {},))
+        if (verifyUser.otp !== otp) {
+            return res.status(201).json(error("Invalid OTP", res.statusCode))
         }
+        await NewStarUser.findOneAndUpdate({ email: email }, { otp: "" })
+        res.status(201).json(success(res.statusCode, "OTP Verified", {},))
+
     } catch (err) {
         console.log(err);
         res.status(403).json(error("Please provide right Credential", res.statusCode))
@@ -157,22 +157,22 @@ exports.verifyOtp = async (req, res) => {
 
 
 exports.updatePassword = async (req, res) => {
-    const { email, password } = req.body
-    // console.log(req.body);
-    if (!email || !password) {
-        res.status(201).json(error("Please Provide UserID and Password", res.statusCode))
-    }
     try {
-        const updateuserPassword = await NewStarUser.findOne({ email }).select("password")
+        const { email, password } = req.body
+        // console.log(req.body);
+        if (!email || !password) {
+            return res.status(201).json(error("Please Provide UserID and Password", res.statusCode))
+        }
+        const updateUserPassword = await NewStarUser.findOne({ email }).select("password")
 
-        if (!updateuserPassword) {
-            res.status(201).json(error("User is not registered", res.statusCode))
+        if (!updateUserPassword) {
+            return res.status(201).json(error("User is not registered", res.statusCode))
         }
-        else {
-            updateuserPassword.password = password
-            await updateuserPassword.save()
-            res.status(201).json(success(res.statusCode, "Password Updated Successfully", updateuserPassword))
-        }
+
+        updateUserPassword.password = password
+        await updateUserPassword.save()
+        res.status(201).json(success(res.statusCode, "Password Updated Successfully", updateUserPassword))
+
     } catch (err) {
         console.log(err);
         res.status(401).json(error("Invalid", res.statusCode))
@@ -187,13 +187,13 @@ exports.changePassword = async (req, res) => {
 
         const changeUserPass = await NewStarUser.findOne({ email: email }).select("password")
         if (!await changeUserPass.passwordChange(oldPassword, changeUserPass.password)) {
-            res.status(201).json(error("Invalid old Password", res.statusCode))
+            return res.status(201).json(error("Invalid old Password", res.statusCode))
         }
-        else {
-            changeUserPass.password = newPassword
-            await changeUserPass.save()
-            res.status(201).json(success(res.statusCode, "Password is Changed Successfully", changeUserPass))
-        }
+
+        changeUserPass.password = newPassword
+        await changeUserPass.save()
+        res.status(201).json(success(res.statusCode, "Password is Changed Successfully", changeUserPass))
+
 
     } catch (err) {
         console.log(err)
@@ -215,7 +215,7 @@ exports.logout = async (req, res) => {
         req.user.tokens = [];
 
         res.clearCookie("jwt")
-        console.log("Logout Successfully");
+        // console.log("Logout Successfully");
         await req.user.save()
         res.status(201).json(success(res.statusCode, "Logged out Successfully", {}))
     } catch (error) {
