@@ -92,7 +92,7 @@ const newUserSchema = mongoose.Schema({
         }
     }],
 
-})
+},  { timestamps: true })
 
 
 newUserSchema.methods.passwordChange = async (plainPassword, hashedPassword) => {

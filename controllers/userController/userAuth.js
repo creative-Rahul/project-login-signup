@@ -1,11 +1,41 @@
 const validator = require("validator")
 const NewStarUser = require("../../models/userModels/registerSchema")
+const Contact = require("../../models/contact")
 const bcrypt = require("bcrypt")
 const res = require("express/lib/response")
 const { success, error } = require("../../service_response/userApiResponse")
 const multer = require("multer")
 // const upload = require("../../middleware/upload")
 // const path = require("path")
+
+
+exports.contact = async (req, res) => {
+    const { name, email, subject, message } = req.body;
+    // let arr = name.split(" ")
+    // console.log(arr[0], arr[1], arr[2])
+    // // if (!(name ? name.split(" ").length : 0) === 2) {
+    // if (!validator.isAlpha(arr[0]) || !validator.isAlpha(arr[1]) || !validator.isAlpha(arr[2])) {
+    //     return res.status(201).json(error("Please enter valid name", res.statusCode))
+    //     // let name = fullName
+    // }
+    if (!validator.isEmail(email)) {
+        return res.status(201).json(error("Please enter valid Email", res.statusCode))
+    }
+    try {
+        const newContact = new Contact({
+            name: name,
+            email: email,
+            subject: subject,
+            message: message
+        })
+        const newMessage = await newContact.save()
+        res.status(201).json(success(res.statusCode, "We'll contact you ASAP", newMessage))
+
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(error("Please enter valid details", res.statusCode))
+    }
+}
 
 exports.home = (req, res) => {
     res.send("Welcome to home page")
@@ -87,7 +117,8 @@ exports.login = async (req, res) => {
         })
         const isPasswordMatched = await bcrypt.compare(password, verifyUser.password)
         if (isPasswordMatched) {
-            res.status(201).json(success(res.statusCode, "Logged In", verifyUser))
+            const { password, ...others } = verifyUser._doc
+            res.status(201).json(success(res.statusCode, "Logged In", others))
         } else {
             res.status(201).json(error("Wrong Password", res.statusCode))
         }

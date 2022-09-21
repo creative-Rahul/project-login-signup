@@ -24,6 +24,10 @@ const adminRegisterSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
     adminProfile: {
         type: String,
         // required: true
@@ -32,29 +36,29 @@ const adminRegisterSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    otp:{
-        type:Number
+    otp: {
+        type: Number
     },
-    adminTokens: [{
-        adminToken: {
+    tokens: [{
+        token: {
             type: String
         }
     }]
-})
+},{ timestamps: true })
 
-adminRegisterSchema.methods.changeAdminPassword= async function(plainPassword,hashedPassword){
-    return await bcrypt.compare(plainPassword,hashedPassword)
+adminRegisterSchema.methods.changeAdminPassword = async function (plainPassword, hashedPassword) {
+    return await bcrypt.compare(plainPassword, hashedPassword)
 }
 
 
 adminRegisterSchema.methods.generateAdminAuthToken = async function () {
     try {
-        const adminToken = jwt.sign({ _id: this._id }, "thisismytokenforadmin")
-        this.adminTokens = this.adminTokens.concat({ adminToken: adminToken });
+        const token = jwt.sign({ _id: this._id }, "thisismytokenforadmin")
+        this.tokens = this.tokens.concat({ token: token });
         await this.save()
-        return adminToken;
+        return token;
     } catch (err) {
-        console.log("Token Error "+err)
+        console.log("Token Error " + err)
     }
 }
 

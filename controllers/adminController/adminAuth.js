@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt")
 
 exports.register = async (req, res) => {
     try {
-        const { firstName, lastName, email, adminRole, password } = req.body
+        const { firstName, lastName, email, adminRole, password ,isAdmin} = req.body
         // console.log(req.files);
         if (!firstName) {
             return res.status(201).json(error("Please enter valid name", res.statusCode))
@@ -38,12 +38,13 @@ exports.register = async (req, res) => {
             lastName: lastName,
             email: email,
             adminRole: adminRole,
+            isAdmin:isAdmin,
             adminProfile: `${req.files[0].destination.replace("./public/images", "")}/${req.files[0].filename}`,
             // adminProfile:req.files[0].path,
             password: password
         })
 
-        const adminToken = await newAdminUser.generateAdminAuthToken()
+        const token = await newAdminUser.generateAdminAuthToken()
         const registered = await newAdminUser.save()
         res.status(201).json(success(res.statusCode, "Admin has registered Successfully", registered))
 
@@ -67,10 +68,10 @@ exports.login = async (req, res) => {
             return res.status(201).json(error("Please enter Password"))
         }
         const verifyAdmin = await NewStarAdmin.findOne({ email: email })
-        const adminToken = await verifyAdmin.generateAdminAuthToken()
+        const token = await verifyAdmin.generateAdminAuthToken()
 
-        res.cookie("jwt", adminToken, {
-            expires: new Date(Date.now() + 2 * 60000)
+        res.cookie("jwt", token, {
+            expires: new Date(Date.now() + 10 * 60000)
         })
 
         if (!verifyAdmin) {
@@ -81,7 +82,8 @@ exports.login = async (req, res) => {
 
         const isPasswordMatched = bcrypt.compare(password, verifyAdmin.password)
         if (isPasswordMatched) {
-            return res.status(201).json(success(res.statusCode, "Logged in", verifyAdmin))
+            const {password,...others} = verifyAdmin._doc
+            return res.status(201).json(success(res.statusCode, "Logged in", others))
         }
         if (!isPasswordMatched) {
             return res.status(201).json(error("Wrong Password", res.statusCode))
@@ -189,7 +191,7 @@ exports.changePassword = async (req, res) => {
 
 exports.adminLogout = async (req, res) => {
     try {
-        req.admin.adminTokens = []
+        req.admin.tokens = []
         res.clearCookie("jwt")
         await req.admin.save()
         res.status(201).json(success(res.statusCode, "Logout successfully", {}))
