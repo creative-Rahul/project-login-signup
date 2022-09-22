@@ -1,15 +1,20 @@
 const express = require("express")
 const router = express.Router()
-const { adminAuth } = require("../middleware/jwtTokenAuth")
+
 const upload = require("../middleware/upload")
 
 const {addProduct, updateProduct, allProducts, deleteProduct} = require("../controllers/adminController/productControl")
 
-const { register, login, forgetPassword, verifyOtp, updatePassword, adminLogout, changePassword, } = require("../controllers/adminController/adminAuth");
+const { register, login, forgetPassword, verifyOtp, updatePassword, adminLogout, changePassword, getAdminData, } = require("../controllers/adminController/adminAuth");
+
+const tokenAdminAuthorisation = require("../middleware/adminAuth")
+
 
 router.post("/register", upload.any(), register);
 
 router.post("/login", login);
+
+router.post("/getAdminData",tokenAdminAuthorisation,getAdminData)
 
 router.post("/forgetPassword", forgetPassword)
 
@@ -17,15 +22,15 @@ router.post("/verifyOtp", verifyOtp)
 
 router.post("/updatePassword", updatePassword)
 
-router.post("/changePassword", changePassword)
+router.post("/changePassword",tokenAdminAuthorisation, changePassword)
 
-router.post("/adminLogout", adminAuth, adminLogout)
+router.post("/adminLogout",  adminLogout)
 
-router.post("/addProduct",adminAuth,addProduct)
+router.post("/addProduct",tokenAdminAuthorisation,addProduct)
 
-router.post("/updateProduct",adminAuth,updateProduct)
+router.post("/updateProduct",tokenAdminAuthorisation,updateProduct)
 
-router.delete("/deleteProduct",adminAuth,deleteProduct)
+router.delete("/deleteProduct",tokenAdminAuthorisation,deleteProduct)
 
 router.get("/allProducts",allProducts)
 

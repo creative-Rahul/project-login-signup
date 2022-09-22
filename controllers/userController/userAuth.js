@@ -85,7 +85,7 @@ exports.register = async (req, res) => {
             password: req.body.firstName
         })
 
-        const token = await newuser.generateUserAuthToken()
+        // const token = await newuser.generateUserAuthToken()
         const registerd = await newuser.save()
         res.status(201).json(success(res.statusCode, "Registered Successfully", registerd))
 
@@ -110,26 +110,22 @@ exports.login = async (req, res) => {
 
         const verifyUser = await NewStarUser.findOne({ email: email })
 
-        const token = await verifyUser.generateUserAuthToken()
-
-        res.cookie("jwt", token, {
-            expires: new Date(Date.now() + (10 * 60000))
-        })
-        const isPasswordMatched = await bcrypt.compare(password, verifyUser.password)
-        if (isPasswordMatched) {
-            const { password, ...others } = verifyUser._doc
-            res.status(201).json(success(res.statusCode, "Logged In", others))
-        } else {
-            res.status(201).json(error("Wrong Password", res.statusCode))
+        if (! await (verifyUser.passwordChange(password, verifyUser.password))) {
+            return res.status(201).json(error("Wrong Password", res.statusCode))
         }
+
+        const token = await verifyUser.generateUserAuthToken()
+        // const { password, ...others } = verifyUser._doc
+        // res.cookie("jwt", token, {
+        // expires: new Date(Date.now() + (10 * 60000))
+        // })
+        res.header("x-auth-token-user", token)
+            .header("access-control-expose-headers", "x-auth-token-admin")
+            .status(201).json(success(res.statusCode, "Logged In", { verifyUser, token }))
+
     } catch (err) {
         console.log(err);
-        res.status(401).send({
-            error: true,
-            error_code: 401,
-            message: "Wrong Credential",
-            // results: registerd
-        })
+        res.status(401).json(error("Error in Loggin in",res.statusCode))
     }
 }
 
@@ -213,22 +209,46 @@ exports.updatePassword = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
     try {
-        const { email, oldPassword, newPassword } = req.body;
+        const {oldPassword, newPassword } = req.body;
         // console.log(req.body);
 
-        const changeUserPass = await NewStarUser.findOne({ email: email }).select("password")
-        if (!await changeUserPass.passwordChange(oldPassword, changeUserPass.password)) {
+        const user = await NewStarUser.findById(req.user._id).select("password")
+        if (!await user.passwordChange(oldPassword, user.password)) {
             return res.status(201).json(error("Invalid old Password", res.statusCode))
         }
 
-        changeUserPass.password = newPassword
-        await changeUserPass.save()
-        res.status(201).json(success(res.statusCode, "Password is Changed Successfully", changeUserPass))
+        user.password = newPassword
+        await user.save()
+        res.status(201).json(success(res.statusCode, "Password is Changed Successfully", {user}))
 
 
     } catch (err) {
         console.log(err)
         res.status(201).json(error("Invalid Password", res.statusCode))
+    }
+}
+
+
+
+exports.updateAddress = async (req, res) => {
+    const { addressLine} = req.body
+    // console.log(req.body);
+    if (!addressLine) {
+        return res.status(201).json(error("Please enter address", res.statusCode))
+    }
+    try {
+        const user = await NewStarUser.findById(req.user._id).select("addressLine")
+        if (!user) {
+            return res.status(201).json(error("User not found", res.statusCode))
+        }
+        console.log(user);
+        user.addressLine = addressLine
+        await user.save()
+        res.status(201).json(success(res.statusCode, "address updated successfully", user))
+
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(error("Address not updated & Something went wromg", res.statusCode))
     }
 }
 

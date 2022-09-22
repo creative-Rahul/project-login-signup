@@ -1,8 +1,8 @@
 const express = require("express")
 const router = express.Router()
 const upload = require("../middleware/upload")
-const { userAuth } = require("../middleware/jwtTokenAuth")
-const { home, register, login, logout, forgotPassword, verifyOtp, updatePassword, changePassword, contact } = require("../controllers/userController/userAuth")
+const { home, register, login, logout, forgotPassword, verifyOtp, updatePassword, changePassword, contact, updateAddress } = require("../controllers/userController/userAuth")
+const tokenAuthorisationUser = require("../middleware/userAuth")
 
 
 router.get("/home", home)
@@ -17,10 +17,11 @@ router.post("/verifyOtp", verifyOtp)
 
 router.post("/updatePassword", updatePassword)
 
-router.post("/changePassword", userAuth, changePassword)
+router.post("/changePassword", tokenAuthorisationUser, changePassword)
 
+router.post("/updateAddress", tokenAuthorisationUser, updateAddress)
 
-router.post("/logout", userAuth, logout)
+router.post("/logout", logout)
 
 router.post("/contact", contact)
 

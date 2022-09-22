@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt")
 
 exports.register = async (req, res) => {
     try {
-        const { firstName, lastName, email, adminRole, password ,isAdmin} = req.body
+        const { firstName, lastName, email, adminRole, password, isAdmin } = req.body
         // console.log(req.files);
         if (!firstName) {
             return res.status(201).json(error("Please enter valid name", res.statusCode))
@@ -38,13 +38,13 @@ exports.register = async (req, res) => {
             lastName: lastName,
             email: email,
             adminRole: adminRole,
-            isAdmin:isAdmin,
+            isAdmin: isAdmin,
             adminProfile: `${req.files[0].destination.replace("./public/images", "")}/${req.files[0].filename}`,
             // adminProfile:req.files[0].path,
             password: password
         })
 
-        const token = await newAdminUser.generateAdminAuthToken()
+        // const token = await newAdminUser.generateAdminAuthToken()
         const registered = await newAdminUser.save()
         res.status(201).json(success(res.statusCode, "Admin has registered Successfully", registered))
 
@@ -59,8 +59,6 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body
-        // let password1 = req.body
-        // const password = password1.toString()
         if (!validator.isEmail(email)) {
             return res.status(201).json(error("Please enter valid Email", res.statusCode))
         }
@@ -68,27 +66,23 @@ exports.login = async (req, res) => {
             return res.status(201).json(error("Please enter Password"))
         }
         const verifyAdmin = await NewStarAdmin.findOne({ email: email })
-        const token = await verifyAdmin.generateAdminAuthToken()
 
-        res.cookie("jwt", token, {
-            expires: new Date(Date.now() + 10 * 60000)
-        })
+        const token = await verifyAdmin.generateAdminAuthToken()
 
         if (!verifyAdmin) {
             return res.status(201).json(error("Email is not Registered", res.statusCode))
         }
 
-
-
-        const isPasswordMatched = bcrypt.compare(password, verifyAdmin.password)
-        if (isPasswordMatched) {
-            const {password,...others} = verifyAdmin._doc
-            return res.status(201).json(success(res.statusCode, "Logged in", others))
-        }
-        if (!isPasswordMatched) {
+        if (!await (verifyAdmin.changeAdminPassword(password, verifyAdmin.password))) {
             return res.status(201).json(error("Wrong Password", res.statusCode))
         }
 
+        // res.cookie("jwt", token, {
+        //     expires: new Date(Date.now() + 10 * 60000)
+        // })
+        res.header("x-auth-token-admin", token)
+            .header("access-control-expose-headers", "x-auth-token-admin")
+            .status(201).json(success(res.statusCode, "Logged in", {verifyAdmin,token}))
 
     } catch (err) {
         console.log(err);
@@ -96,6 +90,16 @@ exports.login = async (req, res) => {
     }
 }
 
+
+exports.getAdminData = async(req,res)=>{
+    try {
+        const admin = await NewStarAdmin.findById(req.admin._id).select("-password")
+        res.status(201).json(success(res.statusCode,"Admin Data fetched Successfully",{admin}))
+    } catch (err) {
+        console.log(err);
+        res.status(401).json("Error while fetching admin data",res.statusCode)
+    }
+}
 
 exports.forgetPassword = async (req, res) => {
     try {
@@ -166,20 +170,15 @@ exports.updatePassword = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
     try {
-        const { email, oldPassword, newPassword } = req.body;
-        if (!validator.isEmail(email)) {
-            return res.status(201).json(error("Invalid Email", res.statusCode))
-        }
-        const verifyAdminEmail = await NewStarAdmin.findOne({ email: email }).select("password")
-        // if(!verifyAdminEmail){
-        //     return res.status(201).json(error("Email not registered",res.statusCode))
-        // }
-        if (!await verifyAdminEmail.changeAdminPassword(oldPassword, verifyAdminEmail.password)) {
+        const {oldPassword, newPassword } = req.body;
+        const admin = await NewStarAdmin.findById(req.admin._id).select("password")
+
+        if (!await admin.changeAdminPassword(oldPassword, admin.password)) {
             return res.status(201).json(error("Old Password not matched", res.statusCode))
         }
-        verifyAdminEmail.password = newPassword;
-        await verifyAdminEmail.save()
-        res.status(201).json(success(res.statusCode, "Password Updated Successfully", verifyAdminEmail))
+        admin.password = newPassword;
+        await admin.save()
+        res.status(201).json(success(res.statusCode, "Password Updated Successfully", {admin}))
 
 
     } catch (err) {
