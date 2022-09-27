@@ -33,19 +33,19 @@ const newUserSchema = mongoose.Schema({
     },
     federalTaxId: {
         type: String,
-        // required:true
+        required:true
     },
     businessLicense: {
         type: String,
-        // required:true
+        required:true
     },
     salesTaxId: {
         type: String,
-        // required:true
+        required:true
     },
     tobaccoLicence: {
         type: String,
-        // required: true,
+        required: true,
     },
     firstName: {
         type: String,
@@ -59,7 +59,7 @@ const newUserSchema = mongoose.Schema({
     },
     accountOwnerId: {
         type: String,
-        // required:true
+        required:true
     },
     email: {
         type: String,
@@ -73,7 +73,7 @@ const newUserSchema = mongoose.Schema({
     otp: {
         type: Number
     },
-    verified: {
+    isVerified: {
         type: Boolean,
         default: false
     },
@@ -84,12 +84,12 @@ const newUserSchema = mongoose.Schema({
 }, { timestamps: true }, { collection: "NewStarUser" })
 
 
-newUserSchema.methods.passwordChange = async (plainPassword, hashedPassword) => {
+newUserSchema.methods.correctPassword = async (plainPassword, hashedPassword) => {
     return await bcrypt.compare(plainPassword, hashedPassword);
 }
 
 newUserSchema.methods.generateUserAuthToken = function () {
-    const token = jwt.sign({ _id: this._id, }, "ultra-security", { expiresIn: "90d", });
+    const token = jwt.sign({ _id: this._id}, "ultra-security", { expiresIn: "90d", });
     return token;
 };
 

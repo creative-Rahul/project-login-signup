@@ -11,13 +11,6 @@ const multer = require("multer")
 
 exports.contact = async (req, res) => {
     const { name, email, subject, message } = req.body;
-    // let arr = name.split(" ")
-    // console.log(arr[0], arr[1], arr[2])
-    // // if (!(name ? name.split(" ").length : 0) === 2) {
-    // if (!validator.isAlpha(arr[0]) || !validator.isAlpha(arr[1]) || !validator.isAlpha(arr[2])) {
-    //     return res.status(201).json(error("Please enter valid name", res.statusCode))
-    //     // let name = fullName
-    // }
     if (!validator.isEmail(email)) {
         return res.status(201).json(error("Please enter valid Email", res.statusCode))
     }
@@ -57,14 +50,26 @@ exports.register = async (req, res) => {
         }
         const verifyEmail = await NewStarUser.findOne({ email: email });
         // console.log(!verifyEmail);
-        if (verifyEmail) {
-            return res.status(200).json(error("Email Already Registered", res.statusCode));
-        }
         const federalTaxId = req.files[0].path
         const businessLicense = req.files[1].path
         const salesTaxId = req.files[2].path
-        const tobaccoLicence = req.files[4]?.path
         const accountOwnerId = req.files[3].path
+        const tobaccoLicence = req.files[4]?.path
+        if (!federalTaxId) {
+            return res.status(200).json(error("Please upload federal Tax Id", res.statusCode));
+        }
+        if (!businessLicense) {
+            return res.status(200).json(error("Please upload business License", res.statusCode));
+        }
+        if (!salesTaxId) {
+            return res.status(200).json(error("Please upload sales Tax Id", res.statusCode));
+        }
+        if (!accountOwnerId) {
+            return res.status(200).json(error("Please upload account Owner Id", res.statusCode));
+        }
+
+
+        const randomPassword = Math.floor(10000 + Math.random() * 90000)
 
         const newuser = new NewStarUser({
             companyName: companyName,
@@ -82,12 +87,12 @@ exports.register = async (req, res) => {
             accountOwnerId: accountOwnerId,
             email: email,
             phoneNumber: phoneNumber,
-            password: req.body.firstName
+            password: randomPassword
         })
 
         // const token = await newuser.generateUserAuthToken()
         const registerd = await newuser.save()
-        res.status(201).json(success(res.statusCode, "Registered Successfully", registerd))
+        res.status(201).json(success(res.statusCode, "Registered Successfully", { registerd, randomPassword }))
 
     } catch (err) {
         console.log(err);
@@ -106,12 +111,18 @@ exports.login = async (req, res) => {
     try {
         // console.log(req.body);
         const email = req.body.email;
-        const password = req.body.password;
+        const plainPassword = req.body.password;
+        const password = plainPassword.toString()
 
         const verifyUser = await NewStarUser.findOne({ email: email })
+        // console.log(passwordChange(password,verifyUser.password));
 
-        if (! await (verifyUser.passwordChange(password, verifyUser.password))) {
+        if (!(await (verifyUser.correctPassword(password, verifyUser.password)))) {
             return res.status(201).json(error("Wrong Password", res.statusCode))
+        }
+
+        if (!verifyUser.isVerified) {
+            return res.status(201).json(error("You are not authorised by admin", res.statusCode))
         }
 
         const token = await verifyUser.generateUserAuthToken()
@@ -119,13 +130,14 @@ exports.login = async (req, res) => {
         // res.cookie("jwt", token, {
         // expires: new Date(Date.now() + (10 * 60000))
         // })
+
         res.header("x-auth-token-user", token)
             .header("access-control-expose-headers", "x-auth-token-admin")
             .status(201).json(success(res.statusCode, "Logged In", { verifyUser, token }))
 
     } catch (err) {
         console.log(err);
-        res.status(401).json(error("Error in Loggin in",res.statusCode))
+        res.status(401).json(error("Error in Loggin in", res.statusCode))
     }
 }
 
@@ -209,7 +221,7 @@ exports.updatePassword = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
     try {
-        const {oldPassword, newPassword } = req.body;
+        const { oldPassword, newPassword } = req.body;
         // console.log(req.body);
 
         const user = await NewStarUser.findById(req.user._id).select("password")
@@ -219,7 +231,7 @@ exports.changePassword = async (req, res) => {
 
         user.password = newPassword
         await user.save()
-        res.status(201).json(success(res.statusCode, "Password is Changed Successfully", {user}))
+        res.status(201).json(success(res.statusCode, "Password is Changed Successfully", { user }))
 
 
     } catch (err) {
@@ -231,7 +243,7 @@ exports.changePassword = async (req, res) => {
 
 
 exports.updateAddress = async (req, res) => {
-    const { addressLine} = req.body
+    const { addressLine } = req.body
     // console.log(req.body);
     if (!addressLine) {
         return res.status(201).json(error("Please enter address", res.statusCode))

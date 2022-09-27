@@ -1,9 +1,11 @@
 const validator = require("validator")
 const { success, error } = require("../../service_response/userApiResponse")
 const NewStarAdmin = require("../../models/adminModels/adminRegister")
-const res = require("express/lib/response")
+const csv = require("csvtojson")
 
 const bcrypt = require("bcrypt")
+const NewStarUser = require("../../models/userModels/registerSchema")
+const res = require("express/lib/response")
 
 
 exports.register = async (req, res) => {
@@ -82,7 +84,7 @@ exports.login = async (req, res) => {
         // })
         res.header("x-auth-token-admin", token)
             .header("access-control-expose-headers", "x-auth-token-admin")
-            .status(201).json(success(res.statusCode, "Logged in", {verifyAdmin,token}))
+            .status(201).json(success(res.statusCode, "Logged in", { verifyAdmin, token }))
 
     } catch (err) {
         console.log(err);
@@ -91,15 +93,6 @@ exports.login = async (req, res) => {
 }
 
 
-exports.getAdminData = async(req,res)=>{
-    try {
-        const admin = await NewStarAdmin.findById(req.admin._id).select("-password")
-        res.status(201).json(success(res.statusCode,"Admin Data fetched Successfully",{admin}))
-    } catch (err) {
-        console.log(err);
-        res.status(401).json("Error while fetching admin data",res.statusCode)
-    }
-}
 
 exports.forgetPassword = async (req, res) => {
     try {
@@ -170,7 +163,7 @@ exports.updatePassword = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
     try {
-        const {oldPassword, newPassword } = req.body;
+        const { oldPassword, newPassword } = req.body;
         const admin = await NewStarAdmin.findById(req.admin._id).select("password")
 
         if (!await admin.changeAdminPassword(oldPassword, admin.password)) {
@@ -178,7 +171,7 @@ exports.changePassword = async (req, res) => {
         }
         admin.password = newPassword;
         await admin.save()
-        res.status(201).json(success(res.statusCode, "Password Updated Successfully", {admin}))
+        res.status(201).json(success(res.statusCode, "Password Updated Successfully", { admin }))
 
 
     } catch (err) {
@@ -200,3 +193,93 @@ exports.adminLogout = async (req, res) => {
         res.status(401).json(error("Something went wrong", res.statusCode))
     }
 }
+
+
+exports.getAdminData = async (req, res) => {
+    try {
+        const admin = await NewStarAdmin.findById(req.admin._id).select("-password")
+        res.status(201).json(success(res.statusCode, "Admin Data fetched Successfully", { admin }))
+    } catch (err) {
+        console.log(err);
+        res.status(401).json("Error while fetching admin data", res.statusCode)
+    }
+}
+
+exports.getAllAdmin = async (req, res) => {
+    try {
+        const admin = await NewStarAdmin.find().select("-password")
+        res.status(201).json(success(res.statusCode, "Admin Data fetched Successfully", { admin }))
+    } catch (err) {
+        console.log(err);
+        res.status(401).json("Error while fetching admin data", res.statusCode)
+    }
+}
+
+
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await NewStarUser.find().select("-password")
+        res.status(201).json(success(res.statusCode, "All Users fetched Successfully", users))
+    } catch (err) {
+        console.log(err);
+        res.status(201).json(error("Error while fetching users", res.statusCode))
+    }
+}
+
+
+// const adminAuthorisedUser = asunc (req,res)=>{
+//     try {
+
+        
+//     } catch (err) {
+//         console.log(err);
+//         res.status(201).json(error("Error while authorising user",res.statusCode))
+        
+//     }
+// }
+
+
+
+
+// exports.importUsers = async (req, res) => {
+//     // console.log(req.files);
+//     const csvFilePath = req.files[0].path
+//     try {
+//         const jsonArray = await csv().fromFile(csvFilePath)
+//         console.log(jsonArray.length);
+//         let arr2 = jsonArray.push({ password: "password" })
+//         console.log(jsonArray[0]);
+        
+//         // for (let i = 0; i < jsonArray.length; i++) {
+//         //     // jsonArray.push()
+
+//         //     const newObj = jsonArray.push({ password: "password" })
+//         //     console.log(jsonArray);
+//         //     // break
+
+//         // }
+//         // const importedData = await NewStarUser.insertMany(jsonArray)
+//         // const importedData =  NewStarUser.insertMany(jsonArray, (err, results) => {
+//         //     if (err) {
+//         //         console.log(err);
+//         //         return res.status(401).json(error("Validation Error", res.statusCode))
+//         //     }
+//         //     else {
+//         //         console.log(results);
+//         //     }
+//         // })
+//         // console.log(importedData);
+//         // {
+//         // let arr = [{fname:"rahul",lname:"Yadav"},{fname:"Alok",lname:"yadav"}]
+//         // const arr2 = arr.push({city:"blp"})
+//         // console.log(arr);
+//         // console.log(arr2[0]);
+//         // console.log(arr2[1]);
+
+//         // }
+//         res.status(201).json(success(res.statusCode, "Successfully Imported", jsonArray))
+//     } catch (err) {
+//         console.log(err);
+//         res.status(401).json(error("Error while importing the data", res.statusCode))
+//     }
+// }

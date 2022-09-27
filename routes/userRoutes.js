@@ -1,9 +1,10 @@
 const express = require("express")
 const router = express.Router()
 const upload = require("../middleware/upload")
-const { home, register, login, logout, forgotPassword, verifyOtp, updatePassword, changePassword, contact, updateAddress } = require("../controllers/userController/userAuth")
 const tokenAuthorisationUser = require("../middleware/userAuth")
 
+const { home, register, login, logout, forgotPassword, verifyOtp, updatePassword, changePassword, contact, updateAddress } = require("../controllers/userController/userController")
+const { addToCart, updateCart, deleteCart, getCart } = require("../controllers/userController/cartController")
 
 router.get("/home", home)
 
@@ -25,9 +26,13 @@ router.post("/logout", logout)
 
 router.post("/contact", contact)
 
-// router.post("/addProduct",addProduct)
+router.post("/cart/addToCart", tokenAuthorisationUser, addToCart)
 
-// router.post("/updateProduct",updateProduct)
+router.post("/cart/updateCart", tokenAuthorisationUser, updateCart)
+
+router.post("/cart/deleteCart", tokenAuthorisationUser, deleteCart)
+
+router.get("/cart/getCart/:userId", tokenAuthorisationUser, getCart)
 
 // router.get("/allProducts",allProducts)
 

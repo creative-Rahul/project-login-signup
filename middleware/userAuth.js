@@ -21,4 +21,15 @@ function tokenAuthorisationUser(req, res, next) {
 }
 
 
+// const adminAuthorizedUser = (req, res, next) => {
+//     tokenAuthorisationUser(req, res, () => {
+//         if (req.user.isVerified) {
+//             next()
+//         } else {
+//             res.status(401).json("You are not allowed", res.statusCode)
+//         }
+//     })
+// }
+
+
 module.exports = tokenAuthorisationUser;

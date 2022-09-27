@@ -1,28 +1,23 @@
-const multer = require("multer")
 const UnitProduct = require("../../models/adminModels/unitProduct")
 const { success, error } = require("../../service_response/userApiResponse")
 
 exports.addProduct = async (req, res) => {
-    const { unitName, category, addedBy, price } = req.body
+    const { unitName, category, addedBy, price ,description,quantity} = req.body
     try {
         if (!unitName || !category || !price) {
             return res.status(201).json(error("Please enter all details", res.statusCode))
         }
         // console.log(req.files);
         // console.log(req.files.length);
-        // let location
-        // for (let i = 0; i < req.files.length; i++) {
-        //     location = req.files[i].path
-        // }
-        // console.log(location);
-        // let images = req.files.forEach(function(element){
-        //     return element.path
-        //     console.log(element.path);
-        // });
-        // console.log(images);
+        const isAdded = await UnitProduct.findOne({unitName})
+        if(isAdded){
+            return res.status(201).json(error("Product is already Registered",res.statusCode))
+        }
         const newProduct = new UnitProduct({
             unitName: unitName,
+            description:description,
             category: category,
+            quantity:quantity,
             addedBy: addedBy,
             price: price,
             // productImage: [req.files[0]?.path, req.files[1]?.path, req.files[2]?.path],
@@ -50,23 +45,22 @@ exports.updateProduct = async (req, res) => {
         if (!unitName) {
             return res.status(201).json(error("Product not exist", res.statusCode))
         }
-        const modifyProduct = await UnitProduct.findOne({ unitName })
-        const updated = await UnitProduct.findOneAndUpdate({ unitName: unitName },
+        // const modifyProduct = await UnitProduct.findOne({ unitName })
+        const updated = await UnitProduct.findOneAndUpdate(
+            { unitName: unitName },
             {
-                $set: {
-                    price: price,
-                    category: category
-                }
+                $set: req.body
             },
             {
                 new: true
-            })
+            }
+        )
 
         res.status(201).json(success(res.statusCode, "Successfully Updated", updated))
 
     } catch (err) {
         console.log(err);
-        res.status(201).json(error("Trouble in updating please provide right credential"))
+        res.status(201).json(error("Trouble in updating please provide right credential", res.statusCode))
     }
 }
 

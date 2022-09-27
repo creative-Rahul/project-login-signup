@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 
-const cartSchema = mongoose.model({
+const cartSchema = mongoose.Schema({
     userId: {
         type: String,
         required: true
@@ -15,7 +15,7 @@ const cartSchema = mongoose.model({
             default: 1
         }
     }]
-}, { timestamps: true }, { collection: "Cart" })
+},  { timestamps: true }, { collection: "Cart" })
 
 const Cart = mongoose.model("Cart", cartSchema)
 
