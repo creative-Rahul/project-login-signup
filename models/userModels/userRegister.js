@@ -93,22 +93,16 @@ newUserSchema.methods.correctPassword = async (plainPassword, hashedPassword) =>
 }
 
 newUserSchema.methods.generateUserAuthToken = function () {
-    const token = jwt.sign({ _id: this._id}, "ultra-security", { expiresIn: "90d", });
+    const token = jwt.sign({ _id: this._id}, "ultra-security", { expiresIn: "1h", });
     return token;
 };
 
 newUserSchema.pre("save", async function (next) {
     if (this.isModified("password")) {
-        this.password = await bcrypt.hash(this.password, 10)
+        return this.password = await bcrypt.hash(this.password, 10)
     }
     next()
 })
-// newUserSchema.pre("insertMany", async function (next) {
-//     if (this.isModified("password")) {
-//         this.password = await bcrypt.hash(this.password, 10)
-//     }
-//     next()
-// })
 
 const NewStarUser = mongoose.model("NewStarUser", newUserSchema)
 

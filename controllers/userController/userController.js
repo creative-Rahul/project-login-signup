@@ -7,16 +7,16 @@ const { success, error } = require("../../service_response/userApiResponse")
 
 
 exports.contact = async (req, res) => {
-    const { name, email, subject, message } = req.body;
+    const { fullName, email, subject, messageTextArea } = req.body;
     if (!validator.isEmail(email)) {
         return res.status(201).json(error("Please enter valid Email", res.statusCode))
     }
     try {
         const newContact = new Contact({
-            name: name,
+            fullName: fullName,
             email: email,
             subject: subject,
-            message: message
+            messageTextArea: messageTextArea
         })
         const newMessage = await newContact.save()
         res.status(201).json(success(res.statusCode, "We'll contact you ASAP", newMessage))
@@ -92,7 +92,7 @@ exports.register = async (req, res) => {
             password: password
         })
         const registerd = await newuser.save()
-        console.log("User's password -> "+password);
+        console.log("User's password -> " + password);
         res.status(201).json(success(res.statusCode, "Registered Successfully", { registerd, password }))
 
     } catch (err) {
@@ -116,7 +116,6 @@ exports.login = async (req, res) => {
         const password = plainPassword.toString()
 
         const verifyUser = await NewStarUser.findOne({ email: email })
-        // console.log(passwordChange(password,verifyUser.password));
 
         if (!(await (verifyUser.correctPassword(password, verifyUser.password)))) {
             return res.status(201).json(error("Wrong Password", res.statusCode))
@@ -226,7 +225,7 @@ exports.changePassword = async (req, res) => {
         // console.log(req.body);
 
         const user = await NewStarUser.findById(req.user._id).select("password")
-        if (!await user.passwordChange(oldPassword, user.password)) {
+        if (!(await (user.correctPassword(oldPassword, user.password)))) {
             return res.status(201).json(error("Invalid old Password", res.statusCode))
         }
 

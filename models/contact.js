@@ -17,7 +17,7 @@ const contactSchema = mongoose.Schema({
         type: String,
         required: true
     }
-})
+}, { timestamps: true }, { collection: "Contact" })
 
 const Contact = mongoose.model("Contact", contactSchema)
 
