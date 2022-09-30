@@ -41,7 +41,7 @@ const adminRegisterSchema = mongoose.Schema({
     },
 }, { timestamps: true }, { collection: "NewStarAdmin" })
 
-adminRegisterSchema.methods.changeAdminPassword = async function (plainPassword, hashedPassword) {
+adminRegisterSchema.methods.checkAdminPassword = async function (plainPassword, hashedPassword) {
     return await bcrypt.compare(plainPassword, hashedPassword)
 }
 

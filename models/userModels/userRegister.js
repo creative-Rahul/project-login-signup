@@ -31,21 +31,25 @@ const newUserSchema = mongoose.Schema({
         type: Number,
         required: true,
     },
+    profileImage: {
+        type: String,
+        // required:true
+    },
     federalTaxId: {
         type: String,
-        required:true
+        // required:true
     },
     businessLicense: {
         type: String,
-        required:true
+        // required:true
     },
     salesTaxId: {
         type: String,
-        required:true
+        // required:true
     },
     tobaccoLicence: {
         type: String,
-        required: true,
+        // required: true,
     },
     firstName: {
         type: String,
@@ -59,7 +63,7 @@ const newUserSchema = mongoose.Schema({
     },
     accountOwnerId: {
         type: String,
-        required:true
+        // required:true
     },
     email: {
         type: String,
@@ -99,6 +103,12 @@ newUserSchema.pre("save", async function (next) {
     }
     next()
 })
+// newUserSchema.pre("insertMany", async function (next) {
+//     if (this.isModified("password")) {
+//         this.password = await bcrypt.hash(this.password, 10)
+//     }
+//     next()
+// })
 
 const NewStarUser = mongoose.model("NewStarUser", newUserSchema)
 

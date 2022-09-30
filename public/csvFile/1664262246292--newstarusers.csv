@@ -1,5 +1,0 @@
-addressLine,city,companyName,email,firstName,isVerified,lastName,phoneNumber,state,userId,zipcode
-"[""lucknow alto""]",blp,Microsoft,test10@gmail.com,Rahul,false,Yadav,857685,Up,1660000000001,271201
-"[""Balrampur,UP""]",blp,Microsoft,test12@gmail.com,timcook,false,Yadav,857685,Up,1660000000002,271201
-"[""bahraich,UP,India""]",blp,Microsoft,test11@gmail.com,Satya,false,Yadav,857685,Up,1660000000009,271201
-"[""Palo alto""]",blp,Microsoft,test13@gmail.com,Sunder,true,Yadav,857685,Up,1660000000006,271201

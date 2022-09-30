@@ -1,10 +1,7 @@
 const validator = require("validator")
-const NewStarUser = require("../../models/userModels/registerSchema")
+const NewStarUser = require("../../models/userModels/userRegister")
 const Contact = require("../../models/contact")
-const bcrypt = require("bcrypt")
-const res = require("express/lib/response")
 const { success, error } = require("../../service_response/userApiResponse")
-const multer = require("multer")
 // const upload = require("../../middleware/upload")
 // const path = require("path")
 
@@ -36,8 +33,8 @@ exports.home = (req, res) => {
 
 exports.register = async (req, res) => {
     try {
-        // console.log(req.body);
-        // console.log(req.files[0])
+        // console.log(req.body.email);
+        // console.log(req.files)
         // console.log(req.files[1])
         // console.log(req.file[1])
         const { companyName, dba, addressLine, city, state, zipcode, firstName, lastName, email, phoneNumber } = req.body;
@@ -48,8 +45,14 @@ exports.register = async (req, res) => {
         if (!validator.isEmail(email)) {
             return res.status(201).json(error("please enter valid email", res.statusCode))
         }
+        if (!email) {
+            return res.status(201).json("Please provide email", res.statusCode)
+        }
         const verifyEmail = await NewStarUser.findOne({ email: email });
-        // console.log(!verifyEmail);
+        if (verifyEmail) {
+            return res.status(201).json(error("Email is already registered", res.statusCode))
+        }
+        // // console.log(!verifyEmail);
         const federalTaxId = req.files[0].path
         const businessLicense = req.files[1].path
         const salesTaxId = req.files[2].path
@@ -68,8 +71,7 @@ exports.register = async (req, res) => {
             return res.status(200).json(error("Please upload account Owner Id", res.statusCode));
         }
 
-
-        const randomPassword = Math.floor(10000 + Math.random() * 90000)
+        const password = Math.floor(10000 + Math.random() * 90000)
 
         const newuser = new NewStarUser({
             companyName: companyName,
@@ -87,12 +89,11 @@ exports.register = async (req, res) => {
             accountOwnerId: accountOwnerId,
             email: email,
             phoneNumber: phoneNumber,
-            password: randomPassword
+            password: password
         })
-
-        // const token = await newuser.generateUserAuthToken()
         const registerd = await newuser.save()
-        res.status(201).json(success(res.statusCode, "Registered Successfully", { registerd, randomPassword }))
+        console.log("User's password -> "+password);
+        res.status(201).json(success(res.statusCode, "Registered Successfully", { registerd, password }))
 
     } catch (err) {
         console.log(err);
@@ -265,24 +266,36 @@ exports.updateAddress = async (req, res) => {
 }
 
 
-
-
-exports.logout = async (req, res) => {
+exports.editProfile = async (req, res) => {
     try {
-        // for single device logout
-        // req.user.tokens = req.user.tokens.filter((currElement)=>{
-        //     return currElement.token !== req.token;
-        // })
+        // console.log(req.files);
+        const { firstName, lastName, phoneNumber, addressLine } = req.body
+        // console.log(req.body);
+        // if(!validator.isEmail(req.body.email)){
+        //     return res.status(201).json(error("Please enter a valid email"))
+        // }
+        const user = await NewStarUser.findById(req.user._id)
+        if (firstName) {
+            user.firstName = firstName
+        }
+        if (lastName) {
+            user.lastName = lastName
+        }
+        if (phoneNumber) {
+            user.phoneNumber = phoneNumber
+        }
+        if (addressLine) {
+            user.addressLine = addressLine
+        }
+        if (req.files.length) {
+            profile = `${req.files[0].destination.replace("/public/images")}/${req.files[0].filename}`
+        }
+        await user.save()
+        res.status(201).json(success(res.statusCode, "Profile updated Successfully", { user }))
 
-        // logout from all devices
-        req.user.tokens = [];
-
-        res.clearCookie("jwt")
-        // console.log("Logout Successfully");
-        await req.user.save()
-        res.status(201).json(success(res.statusCode, "Logged out Successfully", {}))
-    } catch (error) {
-        res.status(500).send(error)
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(error("Error while profile updation"))
     }
-
 }
+

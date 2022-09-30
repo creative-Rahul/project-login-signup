@@ -3,13 +3,13 @@ const multer = require("multer")
 const fs = require("fs")
 
 
-function createAdminUserImagePath(req, res, next) {
-    console.log(req.body);
-    fs.existsSync("./public/csvFile", function (exist) {
+function createImportFilePath(req, res, next) {
+    // console.log(req.body);
+    fs.exists("./public/csvFile", function (exist) {
         if (exist) {
             next()
         } else {
-            fs.mkdirSync("./public/images", { recursive: true }, function (err) {
+            fs.mkdir("./public/csvFile", { recursive: true }, function (err) {
                 if (err) {
                     console.log("Error in file creation");
                     next()
@@ -36,4 +36,4 @@ const CSVFileUpload = multer({
     }
 });
 
-module.exports = CSVFileUpload;
+module.exports = {CSVFileUpload,createImportFilePath};

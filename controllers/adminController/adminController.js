@@ -2,11 +2,7 @@ const validator = require("validator")
 const { success, error } = require("../../service_response/userApiResponse")
 const NewStarAdmin = require("../../models/adminModels/adminRegister")
 const csv = require("csvtojson")
-
-const bcrypt = require("bcrypt")
-const NewStarUser = require("../../models/userModels/registerSchema")
-const res = require("express/lib/response")
-
+const NewStarUser = require("../../models/userModels/userRegister")
 
 exports.register = async (req, res) => {
     try {
@@ -34,7 +30,6 @@ exports.register = async (req, res) => {
         if (verifyEmail) {
             return res.status(201).json(error("Email is already Registered", res.statusCode))
         }
-
         const newAdminUser = new NewStarAdmin({
             firstName: firstName,
             lastName: lastName,
@@ -45,12 +40,9 @@ exports.register = async (req, res) => {
             // adminProfile:req.files[0].path,
             password: password
         })
-
         // const token = await newAdminUser.generateAdminAuthToken()
         const registered = await newAdminUser.save()
         res.status(201).json(success(res.statusCode, "Admin has registered Successfully", registered))
-
-
     } catch (err) {
         console.log(err)
         res.status(401).json(error("Error while registration", res.statusCode))
@@ -68,17 +60,14 @@ exports.login = async (req, res) => {
             return res.status(201).json(error("Please enter Password"))
         }
         const verifyAdmin = await NewStarAdmin.findOne({ email: email })
-
-        const token = await verifyAdmin.generateAdminAuthToken()
-
         if (!verifyAdmin) {
             return res.status(201).json(error("Email is not Registered", res.statusCode))
         }
+        const token = await verifyAdmin.generateAdminAuthToken()
 
-        if (!await (verifyAdmin.changeAdminPassword(password, verifyAdmin.password))) {
+        if (!await (verifyAdmin.checkAdminPassword(password, verifyAdmin.password))) {
             return res.status(201).json(error("Wrong Password", res.statusCode))
         }
-
         // res.cookie("jwt", token, {
         //     expires: new Date(Date.now() + 10 * 60000)
         // })
@@ -166,13 +155,12 @@ exports.changePassword = async (req, res) => {
         const { oldPassword, newPassword } = req.body;
         const admin = await NewStarAdmin.findById(req.admin._id).select("password")
 
-        if (!await admin.changeAdminPassword(oldPassword, admin.password)) {
+        if (!await admin.checkAdminPassword(oldPassword, admin.password)) {
             return res.status(201).json(error("Old Password not matched", res.statusCode))
         }
         admin.password = newPassword;
         await admin.save()
         res.status(201).json(success(res.statusCode, "Password Updated Successfully", { admin }))
-
 
     } catch (err) {
         console.log(err);
@@ -181,16 +169,26 @@ exports.changePassword = async (req, res) => {
 }
 
 
-exports.adminLogout = async (req, res) => {
+exports.editProfile = async (req, res) => {
     try {
-        req.admin.tokens = []
-        res.clearCookie("jwt")
-        await req.admin.save()
-        res.status(201).json(success(res.statusCode, "Logout successfully", {}))
-
+        // console.log(req.files);
+        const { firstName, lastName } = req.body
+        // console.log(req.body);
+        const admin = await NewStarAdmin.findById(req.admin._id)
+        if (firstName) {
+            admin.firstName = firstName
+        }
+        if (lastName) {
+            admin.lastName = lastName
+        }
+        if (req.files.length) {
+            admin.adminProfile = `${req.files[0].destination.replace("/public/images")}/${req.files[0].filename}`
+        }
+        await admin.save()
+        res.status(201).json(success(res.statusCode, "Profile updated Successfully", { admin }))
     } catch (err) {
         console.log(err);
-        res.status(401).json(error("Something went wrong", res.statusCode))
+        res.status(401).json(error("Error while profile updation"))
     }
 }
 
@@ -227,59 +225,76 @@ exports.getAllUsers = async (req, res) => {
 }
 
 
-// const adminAuthorisedUser = asunc (req,res)=>{
-//     try {
-
-        
-//     } catch (err) {
-//         console.log(err);
-//         res.status(201).json(error("Error while authorising user",res.statusCode))
-        
-//     }
-// }
-
+exports.getUser = async (req, res) => {
+    try {
+        const user = await NewStarUser.findById(req.params._id)
+        res.status(201).json(success(res.statusCode, "User fetched Successfully", user))
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(error("Error while fetching user", res.statusCode))
+    }
+}
 
 
+exports.adminAuthorisedUser = async (req, res) => {
+    try {
+        const findUser = await NewStarUser.findByIdAndUpdate((req.params._id), {
+            $set: req.body
+        }, { new: true })
+        res.status(201).json(success(res.statusCode, "User approved Successfully", { findUser }))
+    } catch (err) {
+        console.log(err);
+        res.status(201).json(error("Error while authorising user", res.statusCode))
+    }
+}
 
-// exports.importUsers = async (req, res) => {
-//     // console.log(req.files);
-//     const csvFilePath = req.files[0].path
-//     try {
-//         const jsonArray = await csv().fromFile(csvFilePath)
-//         console.log(jsonArray.length);
-//         let arr2 = jsonArray.push({ password: "password" })
-//         console.log(jsonArray[0]);
-        
-//         // for (let i = 0; i < jsonArray.length; i++) {
-//         //     // jsonArray.push()
+exports.importUsers = async (req, res) => {
+    // console.log(req.files)
+    const csvFilePath = req.files[0].path
+    try {
+        const jsonArray = await csv().fromFile(csvFilePath)
+        // console.log(jsonArray);
+        jsonArray.forEach((jsonArray) => {
+            // console.log(jsonArray);
+            for (let { } in jsonArray) {
+                const randomPass = Math.floor(10000 + Math.random() * 90000)
+                jsonArray["password"] = randomPass
+            }
+            console.log({
+                email: jsonArray.email,
+                password: jsonArray.password
+            })
+            // console.log(jsonArray);
+        })
+        try {
+            const importedData = await NewStarUser.create(jsonArray)
+            // console.log(importedData);
+            // await importedData.save()
+            res.status(201).json(success(res.statusCode, "Successfully Imported", importedData))
+        } catch (err) {
+            console.log(err);
+            res.status(401).json(error("Validation Error", res.statusCode))
+        }
 
-//         //     const newObj = jsonArray.push({ password: "password" })
-//         //     console.log(jsonArray);
-//         //     // break
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(error("Error while importing the data", res.statusCode))
+    }
+}
 
-//         // }
-//         // const importedData = await NewStarUser.insertMany(jsonArray)
-//         // const importedData =  NewStarUser.insertMany(jsonArray, (err, results) => {
-//         //     if (err) {
-//         //         console.log(err);
-//         //         return res.status(401).json(error("Validation Error", res.statusCode))
-//         //     }
-//         //     else {
-//         //         console.log(results);
-//         //     }
-//         // })
-//         // console.log(importedData);
-//         // {
-//         // let arr = [{fname:"rahul",lname:"Yadav"},{fname:"Alok",lname:"yadav"}]
-//         // const arr2 = arr.push({city:"blp"})
-//         // console.log(arr);
-//         // console.log(arr2[0]);
-//         // console.log(arr2[1]);
 
-//         // }
-//         res.status(201).json(success(res.statusCode, "Successfully Imported", jsonArray))
-//     } catch (err) {
-//         console.log(err);
-//         res.status(401).json(error("Error while importing the data", res.statusCode))
-//     }
-// }
+
+
+exports.rejectUser = async (req, res) => {
+    // const {} = req.body
+    try {
+        const findInDB = await NewStarUser.findById(req.params._id)
+        const errorObj = {
+            body: req.body
+        }
+        res.status(201).json(success(res.statusCode, `${findInDB.firstName} ${findInDB.lastName} is Rejected`, errorObj))
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(error("Error in rejection", res.statusCode))
+    }
+}

@@ -1,7 +1,5 @@
 require("dotenv").config();
 const express = require("express")
-const jwt = require("jsonwebtoken")
-const bcrypt = require("bcrypt")
 const cors = require("cors");
 const cookieParser = require("cookie-parser")
 const compression = require("compression")
@@ -22,12 +20,9 @@ app.use(compression())
 const userRoutes = require("./routes/userRoutes")
 const adminRoutes = require("./routes/adminRoutes")
 
-app.use("/user",userRoutes)
+app.use("/user", userRoutes)
 
 app.use("/api/admin", adminRoutes);
-
-
-
 
 
 app.listen(port, () => {
