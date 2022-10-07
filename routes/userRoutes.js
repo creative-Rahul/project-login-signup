@@ -5,6 +5,7 @@ const tokenAuthorisationUser = require("../middleware/userAuth")
 
 const { home, register, login, logout, forgotPassword, verifyOtp, updatePassword, changePassword, contact, updateAddress, editProfile } = require("../controllers/userController/userController")
 const { addToCart, updateCart, deleteCart, getCart } = require("../controllers/userController/cartController")
+const { newOrder, getOrder, updateOrder } = require("../controllers/userController/orderController")
 
 router.get("/home", home)
 
@@ -32,15 +33,15 @@ router.post("/cart/addToCart", tokenAuthorisationUser, addToCart)
 
 router.post("/cart/updateCart", tokenAuthorisationUser, updateCart)
 
-router.post("/cart/deleteCart", tokenAuthorisationUser, deleteCart)
+router.post("/cart/deleteCart/:_id", tokenAuthorisationUser, deleteCart)
 
-router.get("/cart/getCart/:userId", tokenAuthorisationUser, getCart)
+router.get("/cart/getCart", tokenAuthorisationUser, getCart)
 
-// router.get("/allProducts",allProducts)
+router.post("/order/newOrder",tokenAuthorisationUser,newOrder)
 
-// router.delete("/deleteProduct",deleteProduct)
+router.get("/order/getOrder",tokenAuthorisationUser,getOrder)
 
-
+router.post("/order/updateOrder",tokenAuthorisationUser,updateOrder)
 
 
 module.exports = router;

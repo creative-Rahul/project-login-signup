@@ -117,6 +117,10 @@ exports.login = async (req, res) => {
 
         const verifyUser = await NewStarUser.findOne({ email: email })
 
+        if(!verifyUser){
+            return res.status(201).json(error("Email is not registered",res.statusCode))
+        }
+
         if (!(await (verifyUser.correctPassword(password, verifyUser.password)))) {
             return res.status(201).json(error("Wrong Password", res.statusCode))
         }
@@ -126,10 +130,6 @@ exports.login = async (req, res) => {
         }
 
         const token = await verifyUser.generateUserAuthToken()
-        // const { password, ...others } = verifyUser._doc
-        // res.cookie("jwt", token, {
-        // expires: new Date(Date.now() + (10 * 60000))
-        // })
 
         res.header("x-auth-token-user", token)
             .header("access-control-expose-headers", "x-auth-token-admin")
@@ -171,10 +171,6 @@ exports.verifyOtp = async (req, res) => {
             return res.status(201).json(error("Email is invalid", res.statusCode))
         }
         const verifyUser = await NewStarUser.findOne({ email: email })
-        // console.log(verifyUser.otp !== otp);
-        // if (!(userId.toString().length === 13)) {
-        //     res.status(201).json(error("Please porvide valid userID", res.statusCode))
-        // }
         if (!otp) {
             return res.status(201).json(error("Please porvide otp", res.statusCode))
         }

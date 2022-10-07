@@ -13,20 +13,12 @@ const adminRegisterSchema = mongoose.Schema({
     },
     lastName: {
         type: String,
-        required: true
+        // required: true
     },
     email: {
         type: String,
         required: true,
         unique: true
-    },
-    adminRole: {
-        type: String,
-        required: true
-    },
-    isAdmin: {
-        type: Boolean,
-        default: false
     },
     adminProfile: {
         type: String,

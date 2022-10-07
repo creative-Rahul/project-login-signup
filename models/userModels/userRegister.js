@@ -93,7 +93,7 @@ newUserSchema.methods.correctPassword = async (plainPassword, hashedPassword) =>
 }
 
 newUserSchema.methods.generateUserAuthToken = function () {
-    const token = jwt.sign({ _id: this._id}, "ultra-security", { expiresIn: "1h", });
+    const token = jwt.sign({ _id: this._id}, "ultra-security", { expiresIn: "1d", });
     return token;
 };
 

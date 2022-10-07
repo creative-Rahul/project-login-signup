@@ -10,19 +10,28 @@ const unitProductSchema = mongoose.Schema({
         type: String
     },
     category: {
-        type: Array
+        type: String,
+        required: true
+    },
+    subCategory: {
+        type: String,
+        required: true
+    },
+    flavour: {
+        type: String,
+        required: true
     },
     quantity: {
         type: Number,
         required: true
     },
-    addedBy: {
-        type: String,
-        default: "Admin"
-    },
     price: {
         type: Number,
         required: true
+    },
+    brand:{
+        type:String,
+        required:true
     }
 }, { timestamps: true }, { collection: "UnitProduct" })
 

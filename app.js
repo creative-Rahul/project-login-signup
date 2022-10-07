@@ -25,6 +25,7 @@ app.use("/user", userRoutes)
 app.use("/api/admin", adminRoutes);
 
 
+
 app.listen(port, () => {
     console.log(`Server started at localhost:${port}`);
 })
