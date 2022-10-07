@@ -34,8 +34,6 @@ exports.register = async (req, res) => {
             firstName: firstName,
             lastName: lastName,
             email: email,
-            adminRole: adminRole,
-            isAdmin: isAdmin,
             adminProfile: `${req.files[0].destination.replace("./public/images", "")}/${req.files[0].filename}`,
             // adminProfile:req.files[0].path,
             password: password
