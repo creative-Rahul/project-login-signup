@@ -3,7 +3,7 @@ const { error, success } = require("../../service_response/userApiResponse");
 
 exports.newOrder = async (req, res) => {
     try {
-        const { productId, quantity, amount, address, status } = req.body
+        const { productId, quantity,  address, status } = req.body
         // console.log(req.body);
         // console.log(req.user._id);
         const order = new Order({
@@ -12,7 +12,6 @@ exports.newOrder = async (req, res) => {
                 productId: productId,
                 quantity: quantity,
             }],
-            amount: amount,
             address: address,
             status: status
         });

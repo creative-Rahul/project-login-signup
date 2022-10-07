@@ -6,7 +6,7 @@ const {CSVFileUpload,createImportFilePath} = require("../middleware/importUsers"
 
 const { addProduct, updateProduct, allProducts, deleteProduct } = require("../controllers/adminController/productControl")
 
-const { register, login, forgetPassword, verifyOtp, updatePassword, adminLogout, changePassword, getAdminData, getAllAdmin, getAllUsers, importUsers, adminAuthorisedUser, rejectUser, getUser, editProfile, } = require("../controllers/adminController/adminController");
+const { register, login, forgetPassword, verifyOtp, updatePassword, adminLogout, changePassword, getAdminData, getAllAdmin, getAllUsers, importUsers, adminAuthorisedUser, rejectUser, getUser, editProfile, pendingUsers, approvedUsers, } = require("../controllers/adminController/adminController");
 
 const tokenAdminAuthorisation = require("../middleware/adminAuth")
 
@@ -30,6 +30,10 @@ router.post("/changePassword", tokenAdminAuthorisation, changePassword)
 router.post("/editProfile", tokenAdminAuthorisation, upload.any(), editProfile)
 
 router.get("/getAllUsers", tokenAdminAuthorisation, getAllUsers)
+
+router.get("/pendingUsers", tokenAdminAuthorisation, pendingUsers)
+
+router.get("/approvedUsers", tokenAdminAuthorisation, approvedUsers)
 
 router.post("/getUser/:_id", tokenAdminAuthorisation, getUser)
 

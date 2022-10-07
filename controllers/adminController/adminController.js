@@ -223,6 +223,32 @@ exports.getAllUsers = async (req, res) => {
 }
 
 
+exports.pendingUsers = async (req, res) => {
+    try {
+        const pendings = await NewStarUser.aggregate([{ $match: { "isVerified": false } }])
+        // const { password, ...others } = pendings[0]
+        // console.log(others);
+        res.status(201).json(success(res.statusCode, "Pending Users", pendings))
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(error("Error while fetching pending users", res.statusCode))
+    }
+}
+
+
+exports.approvedUsers = async (req, res) => {
+    try {
+        const pendings = await NewStarUser.aggregate([{ $match: { "isVerified": true } }])
+        // const { password, ...others } = pendings[0]
+        // console.log(others);
+        res.status(201).json(success(res.statusCode, "Pending Users", pendings))
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(error("Error while fetching pending users", res.statusCode))
+    }
+}
+
+
 exports.getUser = async (req, res) => {
     try {
         const user = await NewStarUser.findById(req.params._id)
@@ -232,6 +258,8 @@ exports.getUser = async (req, res) => {
         res.status(401).json(error("Error while fetching user", res.statusCode))
     }
 }
+
+
 
 
 exports.adminAuthorisedUser = async (req, res) => {
@@ -249,26 +277,30 @@ exports.adminAuthorisedUser = async (req, res) => {
 exports.importUsers = async (req, res) => {
     // console.log(req.files)
     const csvFilePath = req.files[0].path
+    var userNameAndPassword = []
     try {
         const jsonArray = await csv().fromFile(csvFilePath)
         // console.log(jsonArray);
         jsonArray.forEach((jsonArray) => {
             // console.log(jsonArray);
-            for (let { } in jsonArray) {
+            for (let key in jsonArray) {
                 const randomPass = Math.floor(10000 + Math.random() * 90000)
                 jsonArray["password"] = randomPass
             }
-            console.log({
+            // console.log({
+            //     email: jsonArray.email,
+            //     password: jsonArray.password
+            // })
+            userNameAndPassword.push({
                 email: jsonArray.email,
                 password: jsonArray.password
             })
-            // console.log(jsonArray);
         })
         try {
             const importedData = await NewStarUser.create(jsonArray)
             // console.log(importedData);
             // await importedData.save()
-            res.status(201).json(success(res.statusCode, "Successfully Imported", importedData))
+            res.status(201).json(success(res.statusCode, "Successfully Imported", { importedData, userNameAndPassword }))
         } catch (err) {
             console.log(err);
             res.status(401).json(error("Validation Error", res.statusCode))
