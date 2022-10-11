@@ -1,9 +1,10 @@
 const validator = require("validator")
 const { success, error } = require("../../service_response/userApiResponse")
 const NewStarAdmin = require("../../models/adminModels/adminRegister")
-const csv = require("csvtojson")
-const NewStarUser = require("../../models/userModels/userRegister")
 
+
+
+// Register Admin to StarImporters
 exports.register = async (req, res) => {
     try {
         const { firstName, lastName, email, adminRole, password, isAdmin } = req.body
@@ -48,6 +49,7 @@ exports.register = async (req, res) => {
 }
 
 
+// User login to Admin Importers
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body
@@ -80,7 +82,7 @@ exports.login = async (req, res) => {
 }
 
 
-
+// Forget password -> Admin
 exports.forgetPassword = async (req, res) => {
     try {
         const { email } = req.body
@@ -101,6 +103,9 @@ exports.forgetPassword = async (req, res) => {
     }
 }
 
+
+
+// Verify OTP -> Admin
 exports.verifyOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
@@ -126,6 +131,8 @@ exports.verifyOtp = async (req, res) => {
     }
 }
 
+
+// Update password -> Admin
 exports.updatePassword = async (req, res) => {
     try {
         console.log(req.body);
@@ -148,6 +155,7 @@ exports.updatePassword = async (req, res) => {
 }
 
 
+// Change Password after login -> Admin
 exports.changePassword = async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;
@@ -167,6 +175,7 @@ exports.changePassword = async (req, res) => {
 }
 
 
+// Edit profile -> admin
 exports.editProfile = async (req, res) => {
     try {
         // console.log(req.files);
@@ -191,6 +200,7 @@ exports.editProfile = async (req, res) => {
 }
 
 
+// View admin profile
 exports.getAdminData = async (req, res) => {
     try {
         const admin = await NewStarAdmin.findById(req.admin._id).select("-password")
@@ -201,6 +211,8 @@ exports.getAdminData = async (req, res) => {
     }
 }
 
+
+// View all admins Profile
 exports.getAllAdmin = async (req, res) => {
     try {
         const admin = await NewStarAdmin.find().select("-password")
@@ -212,119 +224,5 @@ exports.getAllAdmin = async (req, res) => {
 }
 
 
-exports.getAllUsers = async (req, res) => {
-    try {
-        const users = await NewStarUser.find().select("-password")
-        res.status(201).json(success(res.statusCode, "All Users fetched Successfully", users))
-    } catch (err) {
-        console.log(err);
-        res.status(201).json(error("Error while fetching users", res.statusCode))
-    }
-}
 
 
-exports.pendingUsers = async (req, res) => {
-    try {
-        const pendings = await NewStarUser.aggregate([{ $match: { "isVerified": false } }])
-        // const { password, ...others } = pendings[0]
-        // console.log(others);
-        res.status(201).json(success(res.statusCode, "Pending Users", pendings))
-    } catch (err) {
-        console.log(err);
-        res.status(401).json(error("Error while fetching pending users", res.statusCode))
-    }
-}
-
-
-exports.approvedUsers = async (req, res) => {
-    try {
-        const pendings = await NewStarUser.aggregate([{ $match: { "isVerified": true } }])
-        // const { password, ...others } = pendings[0]
-        // console.log(others);
-        res.status(201).json(success(res.statusCode, "Pending Users", pendings))
-    } catch (err) {
-        console.log(err);
-        res.status(401).json(error("Error while fetching pending users", res.statusCode))
-    }
-}
-
-
-exports.getUser = async (req, res) => {
-    try {
-        const user = await NewStarUser.findById(req.params._id)
-        res.status(201).json(success(res.statusCode, "User fetched Successfully", user))
-    } catch (err) {
-        console.log(err);
-        res.status(401).json(error("Error while fetching user", res.statusCode))
-    }
-}
-
-
-
-
-exports.adminAuthorisedUser = async (req, res) => {
-    try {
-        const findUser = await NewStarUser.findByIdAndUpdate((req.params._id), {
-            $set: req.body
-        }, { new: true })
-        res.status(201).json(success(res.statusCode, "User approved Successfully", { findUser }))
-    } catch (err) {
-        console.log(err);
-        res.status(201).json(error("Error while authorising user", res.statusCode))
-    }
-}
-
-exports.importUsers = async (req, res) => {
-    // console.log(req.files)
-    const csvFilePath = req.files[0].path
-    var userNameAndPassword = []
-    try {
-        const jsonArray = await csv().fromFile(csvFilePath)
-        // console.log(jsonArray);
-        jsonArray.forEach((jsonArray) => {
-            // console.log(jsonArray);
-            for (let key in jsonArray) {
-                const randomPass = Math.floor(10000 + Math.random() * 90000)
-                jsonArray["password"] = randomPass
-            }
-            // console.log({
-            //     email: jsonArray.email,
-            //     password: jsonArray.password
-            // })
-            userNameAndPassword.push({
-                email: jsonArray.email,
-                password: jsonArray.password
-            })
-        })
-        try {
-            const importedData = await NewStarUser.create(jsonArray)
-            // console.log(importedData);
-            // await importedData.save()
-            res.status(201).json(success(res.statusCode, "Successfully Imported", { importedData, userNameAndPassword }))
-        } catch (err) {
-            console.log(err);
-            res.status(401).json(error("Validation Error", res.statusCode))
-        }
-
-    } catch (err) {
-        console.log(err);
-        res.status(401).json(error("Error while importing the data", res.statusCode))
-    }
-}
-
-
-
-
-exports.rejectUser = async (req, res) => {
-    // const {} = req.body
-    try {
-        const findInDB = await NewStarUser.findById(req.params._id)
-        const errorObj = {
-            body: req.body
-        }
-        res.status(201).json(success(res.statusCode, `${findInDB.firstName} ${findInDB.lastName} is Rejected`, errorObj))
-    } catch (err) {
-        console.log(err);
-        res.status(401).json(error("Error in rejection", res.statusCode))
-    }
-}

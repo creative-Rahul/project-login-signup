@@ -6,7 +6,9 @@ const {CSVFileUpload,createImportFilePath} = require("../middleware/importUsers"
 
 const { addProduct, updateProduct, allProducts, deleteProduct } = require("../controllers/adminController/productControl")
 
-const { register, login, forgetPassword, verifyOtp, updatePassword, adminLogout, changePassword, getAdminData, getAllAdmin, getAllUsers, importUsers, adminAuthorisedUser, rejectUser, getUser, editProfile, pendingUsers, approvedUsers, } = require("../controllers/adminController/adminController");
+const { register, login, forgetPassword, verifyOtp, updatePassword, adminLogout, changePassword, getAdminData, getAllAdmin,  editProfile, } = require("../controllers/adminController/adminController");
+
+const {getAllUsers, importUsers, adminAuthorisedUser, rejectUser, getUser,pendingUsers, approvedUsers, rejectedUsers, } = require("../controllers/adminController/userManagement")
 
 const tokenAdminAuthorisation = require("../middleware/adminAuth")
 
@@ -31,9 +33,11 @@ router.post("/editProfile", tokenAdminAuthorisation, upload.any(), editProfile)
 
 router.get("/getAllUsers", tokenAdminAuthorisation, getAllUsers)
 
-router.get("/pendingUsers", tokenAdminAuthorisation, pendingUsers)
+router.post("/approvedUsers", tokenAdminAuthorisation, approvedUsers)
 
-router.get("/approvedUsers", tokenAdminAuthorisation, approvedUsers)
+router.post("/pendingUsers", tokenAdminAuthorisation, pendingUsers)
+
+router.post("/rejectedUsers", tokenAdminAuthorisation, rejectedUsers)
 
 router.post("/getUser/:_id", tokenAdminAuthorisation, getUser)
 

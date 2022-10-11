@@ -2,7 +2,7 @@ const UnitProduct = require("../../models/adminModels/unitProduct")
 const { success, error } = require("../../service_response/userApiResponse")
 
 exports.addProduct = async (req, res) => {
-    const { unitName, category, subCategory,flavour, price, description, quantity,brand } = req.body
+    const { unitName, category, subCategory, flavour, price, description, quantity, brand } = req.body
     try {
         if (!unitName || !category || !price) {
             return res.status(201).json(error("Please enter all details", res.statusCode))
@@ -18,10 +18,10 @@ exports.addProduct = async (req, res) => {
             description: description,
             category: category,
             subCategory: subCategory,
-            flavour:flavour,
+            flavour: flavour,
             quantity: quantity,
             price: price,
-            brand:brand
+            brand: brand
             // productImage: [req.files[0]?.path, req.files[1]?.path, req.files[2]?.path],
             // productImage: [images],
             // productImage:req.files.forEach(element => {
@@ -34,7 +34,7 @@ exports.addProduct = async (req, res) => {
         // console.log(newProduct);
     } catch (err) {
         console.log(err);
-        res.status(401).json(error("Please enter valid Details of product",res.statusCode))
+        res.status(401).json(error("Please enter valid Details of product", res.statusCode))
     }
 }
 
@@ -52,9 +52,7 @@ exports.updateProduct = async (req, res) => {
             {
                 $set: req.body
             },
-            {
-                new: true
-            }
+            { new: true }
         )
 
         res.status(201).json(success(res.statusCode, "Successfully Updated", updated))

@@ -78,8 +78,9 @@ const newUserSchema = mongoose.Schema({
         type: Number
     },
     isVerified: {
-        type: Boolean,
-        default: false
+        type: String,
+        enum: ["PENDING", "APPROVED", "REJECTED"],
+        default: "PENDING"
     },
     password: {
         type: String,
@@ -93,7 +94,7 @@ newUserSchema.methods.correctPassword = async (plainPassword, hashedPassword) =>
 }
 
 newUserSchema.methods.generateUserAuthToken = function () {
-    const token = jwt.sign({ _id: this._id}, "ultra-security", { expiresIn: "1d", });
+    const token = jwt.sign({ _id: this._id }, "ultra-security", { expiresIn: "1d", });
     return token;
 };
 
