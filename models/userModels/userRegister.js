@@ -58,7 +58,7 @@ const newUserSchema = mongoose.Schema({
     },
     lastName: {
         type: String,
-        required: true,
+        // required: true, 
         min: 3
     },
     accountOwnerId: {
@@ -76,6 +76,10 @@ const newUserSchema = mongoose.Schema({
     },
     otp: {
         type: Number
+    },
+    status: {
+        type: Boolean,
+        default:true
     },
     isVerified: {
         type: String,

@@ -1,60 +1,105 @@
-const express = require("express")
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
-const { upload, createFilePath } = require("../middleware/upload")
-const {CSVFileUpload,createImportFilePath} = require("../middleware/importUsers")
+const { upload, createFilePath } = require("../middleware/upload");
+const {
+    CSVFileUpload,
+    createImportFilePath,
+} = require("../middleware/importUsers");
 
-const { addProduct, updateProduct, allProducts, deleteProduct } = require("../controllers/adminController/productControl")
+const {
+    addProduct,
+    updateProduct,
+    allProducts,
+    deleteProduct,
+} = require("../controllers/adminController/productControl");
 
-const { register, login, forgetPassword, verifyOtp, updatePassword, adminLogout, changePassword, getAdminData, getAllAdmin,  editProfile, } = require("../controllers/adminController/adminController");
+const {
+    register,
+    login,
+    forgetPassword,
+    verifyOtp,
+    updatePassword,
+    adminLogout,
+    changePassword,
+    getAdminData,
+    getAllAdmin,
+    editProfile,
+} = require("../controllers/adminController/adminController");
 
-const {getAllUsers, importUsers, adminAuthorisedUser, rejectUser, getUser,pendingUsers, approvedUsers, rejectedUsers, } = require("../controllers/adminController/userManagement")
+const {
+    getAllUsers,
+    importUsers,
+    adminAuthorisedUser,
+    rejectUser,
+    getUser,
+    pendingUsers,
+    approvedUsers,
+    rejectedUsers,
+    addUser,
+    userStatus,
+} = require("../controllers/adminController/userManagement");
 
-const tokenAdminAuthorisation = require("../middleware/adminAuth")
-
+const tokenAdminAuthorisation = require("../middleware/adminAuth");
 
 router.post("/register", createFilePath, upload.any(), register);
 
 router.post("/login", login);
 
-router.get("/getAdminData", tokenAdminAuthorisation, getAdminData)
+router.get("/getAdminData", tokenAdminAuthorisation, getAdminData);
 
-router.get("/getAllAdmin", tokenAdminAuthorisation, getAllAdmin)
+router.get("/getAllAdmin", tokenAdminAuthorisation, getAllAdmin);
 
-router.post("/forgetPassword", forgetPassword)
+router.post("/forgetPassword", forgetPassword);
 
-router.post("/verifyOtp", verifyOtp)
+router.post("/verifyOtp", verifyOtp);
 
-router.post("/updatePassword", updatePassword)
+router.post("/updatePassword", updatePassword);
 
-router.post("/changePassword", tokenAdminAuthorisation, changePassword)
+router.post("/changePassword", tokenAdminAuthorisation, changePassword);
 
-router.post("/editProfile", tokenAdminAuthorisation, upload.any(), editProfile)
+router.post("/editProfile", tokenAdminAuthorisation, upload.any(), editProfile);
 
-router.get("/getAllUsers", tokenAdminAuthorisation, getAllUsers)
+router.get("/getAllUsers", tokenAdminAuthorisation, getAllUsers);
 
-router.post("/approvedUsers", tokenAdminAuthorisation, approvedUsers)
+router.post("/approvedUsers", tokenAdminAuthorisation, approvedUsers);
 
-router.post("/pendingUsers", tokenAdminAuthorisation, pendingUsers)
+router.post("/pendingUsers", tokenAdminAuthorisation, pendingUsers);
 
-router.post("/rejectedUsers", tokenAdminAuthorisation, rejectedUsers)
+router.post("/rejectedUsers", tokenAdminAuthorisation, rejectedUsers);
 
-router.post("/getUser/:_id", tokenAdminAuthorisation, getUser)
+router.post("/getUser/:_id", tokenAdminAuthorisation, getUser);
 
-router.post("/adminAuthorisedUser/:_id", tokenAdminAuthorisation, adminAuthorisedUser)
+router.post(
+    "/addUser",
+    createFilePath,
+    upload.any(),
+    tokenAdminAuthorisation,
+    addUser
+);
 
-router.post("/rejectUser/:_id", tokenAdminAuthorisation, rejectUser)
+router.post("/userStatus/:_id", tokenAdminAuthorisation, userStatus);
+router.post(
+    "/adminAuthorisedUser/:_id",
+    tokenAdminAuthorisation,
+    adminAuthorisedUser
+);
 
-router.post("/importUsers",createImportFilePath, CSVFileUpload.any(), importUsers)
+router.post("/rejectUser/:_id", tokenAdminAuthorisation, rejectUser);
 
-router.post("/addProduct", tokenAdminAuthorisation, addProduct)
+router.post(
+    "/importUsers",
+    createImportFilePath,
+    CSVFileUpload.any(),
+    importUsers
+);
 
-router.post("/updateProduct", tokenAdminAuthorisation, updateProduct)
+router.post("/addProduct", tokenAdminAuthorisation, addProduct);
 
-router.delete("/deleteProduct", tokenAdminAuthorisation, deleteProduct)
+router.post("/updateProduct", tokenAdminAuthorisation, updateProduct);
 
-router.get("/allProducts", allProducts)
+router.delete("/deleteProduct", tokenAdminAuthorisation, deleteProduct);
 
-
+router.get("/allProducts", allProducts);
 
 module.exports = router;

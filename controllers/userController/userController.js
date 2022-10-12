@@ -52,7 +52,7 @@ exports.register = async (req, res) => {
         if (verifyEmail) {
             return res.status(201).json(error("Email is already registered", res.statusCode))
         }
-        // // console.log(!verifyEmail);
+
         const federalTaxId = req.files[0].path
         const businessLicense = req.files[1].path
         const salesTaxId = req.files[2].path
@@ -84,8 +84,8 @@ exports.register = async (req, res) => {
             businessLicense: businessLicense,
             salesTaxId: salesTaxId,
             tobaccoLicence: tobaccoLicence,
-            firstName: firstName,
-            lastName: lastName,
+            firstName: firstName +" "+ lastName,
+            // lastName: lastName,
             accountOwnerId: accountOwnerId,
             email: email,
             phoneNumber: phoneNumber,
@@ -97,12 +97,7 @@ exports.register = async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        res.status(401).send({
-            error: true,
-            error_code: 401,
-            message: "Wrong Input",
-            // results: registerd
-        })
+        res.status(401).json(error("Wrong input", res.statusCode))
     }
 }
 
@@ -117,16 +112,20 @@ exports.login = async (req, res) => {
 
         const verifyUser = await NewStarUser.findOne({ email: email })
 
-        if(!verifyUser){
-            return res.status(201).json(error("Email is not registered",res.statusCode))
+        if (!verifyUser) {
+            return res.status(201).json(error("Email is not registered", res.statusCode))
         }
 
         if (!(await (verifyUser.correctPassword(password, verifyUser.password)))) {
             return res.status(201).json(error("Wrong Password", res.statusCode))
         }
 
-        if (!verifyUser.isVerified) {
+        if (verifyUser.isVerified == "PENDING") {
             return res.status(201).json(error("You are not authorised by admin", res.statusCode))
+        }
+
+        if (!verifyUser.status) {
+            return res.status(201).json(error("You are suspended by admin", res.statusCode))
         }
 
         const token = await verifyUser.generateUserAuthToken()
@@ -219,23 +218,18 @@ exports.changePassword = async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;
         // console.log(req.body);
-
         const user = await NewStarUser.findById(req.user._id).select("password")
         if (!(await (user.correctPassword(oldPassword, user.password)))) {
             return res.status(201).json(error("Invalid old Password", res.statusCode))
         }
-
         user.password = newPassword
         await user.save()
         res.status(201).json(success(res.statusCode, "Password is Changed Successfully", { user }))
-
-
     } catch (err) {
         console.log(err)
         res.status(201).json(error("Invalid Password", res.statusCode))
     }
 }
-
 
 
 exports.updateAddress = async (req, res) => {
