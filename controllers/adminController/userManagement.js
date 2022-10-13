@@ -56,8 +56,9 @@ exports.pendingUsers = async (req, res) => {
       const pendings = await NewStarUser.aggregate([
         { $match: { isVerified: "PENDING" } },
         { $project: { password: 0 } },
+        
       ]);
-      console.log(pendings);
+      // console.log( pendings);
       res.status(201).json(success(res.statusCode, "Pending Users", pendings));
     } else {
       const pendings = await NewStarUser.find({
@@ -96,7 +97,7 @@ exports.rejectedUsers = async (req, res) => {
         createdAt: {
           $gte: from,
           $lte: to,
-        },
+        }
       });
       console.log(rejected);
       res.status(201).json(success(res.statusCode, "Rejected Users", rejected));
@@ -108,6 +109,26 @@ exports.rejectedUsers = async (req, res) => {
       .json(error("Error while fetching Rejected users", res.statusCode));
   }
 };
+
+
+// // Counting of Pending Approved and Rejected Users -> Admin
+// exports.totalUsers = async(req,res)=>{
+//   try {
+//     const UsersCount = await NewStarUser.aggregate([
+//       { $match: { isVerified: "PENDING" }},
+//       {$count:"PENDINGS"},
+//       { $match: { isVerified: "REJECTED" }},
+//       {$count:"Rejected"},
+//       { $match: { isVerified: "REJECTED" }},
+//       {$count:"Rejected"}
+//     ])
+//     res.status(201).json(success(res.statusCode,"Number of Users",UsersCount))
+//   } catch (err) {
+//     console.log(err);
+//     res.status(401).json(error("Error while fetching number of Users"))
+//   }
+// }
+
 
 // Admin authorised user
 exports.adminAuthorisedUser = async (req, res) => {
@@ -186,6 +207,7 @@ exports.userStatus = async (req, res) => {
   }
 };
 
+
 // import Users from CSV file -> Admin
 exports.importUsers = async (req, res) => {
   // console.log(req.files)
@@ -246,7 +268,6 @@ exports.addUser = async (req, res) => {
       lastName,
       email,
       phoneNumber,
-      heardFromUs,
     } = req.body;
     // console.log(req.body);
 
@@ -309,8 +330,8 @@ exports.addUser = async (req, res) => {
       businessLicense: businessLicense,
       salesTaxId: salesTaxId,
       tobaccoLicence: tobaccoLicence,
-      firstName: firstName + " " + lastName,
-      // lastName: lastName,
+      firstName: firstName,
+      lastName: lastName,
       accountOwnerId: accountOwnerId,
       email: email,
       isVerified: "APPROVED",
@@ -330,5 +351,106 @@ exports.addUser = async (req, res) => {
     res
       .status(401)
       .json(error("Something went Wrong While adding a User", res.statusCode));
+  }
+};
+
+//Edit a User Profile -> Admin
+exports.editUserProfile = async (req, res) => {
+  try {
+    const {
+      companyName,
+      dba,
+      addressLine,
+      city,
+      state,
+      zipcode,
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      quotation,
+    } = req.body;
+
+    console.log(req.body);
+    console.log(req.files.length);
+
+    const federalTaxId = req.files[0]?.fieldname;
+    // console.log(federalTaxId);
+    const businessLicense = req.files[1]?.fieldname;
+    const salesTaxId = req.files[2]?.fieldname;
+    const accountOwnerId = req.files[3]?.fieldname;
+    const tobaccoLicence = req.files[4]?.fieldname;
+
+    const editUser = await NewStarUser.findById(req.params._id);
+
+    if (companyName) {
+      editUser.companyName = companyName;
+    }
+    if (dba) {
+      editUser.dba = dba;
+    }
+    if (addressLine) {
+      editUser.addressLine = addressLine;
+    }
+    if (city) {
+      editUser.city = city;
+    }
+    if (state) {
+      editUser.state = state;
+    }
+    if (zipcode) {
+      editUser.zipcode = zipcode;
+    }
+    if (firstName) {
+      editUser.firstName = firstName;
+    }
+    if (lastName) {
+      editUser.lastName = lastName;
+    }
+    if (email) {
+      editUser.email = email;
+    }
+    if (phoneNumber) {
+      editUser.phoneNumber = phoneNumber;
+    }
+    if (quotation) {
+      editUser.quotation = quotation;
+    }
+    for (let i = 0; i < req.files.length; i++) {
+      if (req.files[i].fieldname == "federalTaxId") {
+        editUser.federalTaxId = `${req.files[i].destination.replace(
+          "./public/images"
+        )}/${req.files[i].filename}`;
+      }
+      if (req.files[i].fieldname == "businessLicense") {
+        editUser.businessLicense = `${req.files[i].destination.replace(
+          "./public/images"
+        )}/${req.files[i].filename}`;
+      }
+      if (req.files[i].fieldname == "salesTaxId") {
+        editUser.salesTaxId = `${req.files[i].destination.replace(
+          "./public/images"
+        )}/${req.files[i].filename}`;
+      }
+      if (req.files[i].fieldname == "accountOwnerId") {
+        editUser.accountOwnerId = `${req.files[i].destination.replace(
+          "./public/images"
+        )}/${req.files[i].filename}`;
+      }
+      if (req.files[i].fieldname == "tobaccoLicence") {
+        editUser.tobaccoLicence = `${req.files[i].destination.replace(
+          "./public/images"
+        )}/${req.files[i].filename}`;
+      }
+    }
+    await editUser.save();
+    res
+      .status(201)
+      .json(
+        success(res.statusCode, "User Deatils Updated Successfully", editUser)
+      );
+  } catch (err) {
+    console.log(err);
+    res.status(401).json(error("Error while updation", res.statusCode));
   }
 };
