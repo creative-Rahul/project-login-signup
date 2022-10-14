@@ -1,5 +1,6 @@
 const csv = require("csvtojson");
 const validator = require("validator");
+const { count } = require("../../models/userModels/userRegister");
 const NewStarUser = require("../../models/userModels/userRegister");
 const { error, success } = require("../../service_response/userApiResponse");
 
@@ -56,7 +57,6 @@ exports.pendingUsers = async (req, res) => {
       const pendings = await NewStarUser.aggregate([
         { $match: { isVerified: "PENDING" } },
         { $project: { password: 0 } },
-        
       ]);
       // console.log( pendings);
       res.status(201).json(success(res.statusCode, "Pending Users", pendings));
@@ -89,15 +89,17 @@ exports.rejectedUsers = async (req, res) => {
         { $match: { isVerified: "REJECTED" } },
         { $project: { password: 0 } },
       ]);
-      console.log(rejected);
-      res.status(201).json(success(res.statusCode, "Rejected Users", rejected));
+      // console.log(rejected);
+      res
+        .status(201)
+        .json(success(res.statusCode, "Rejected Users", { rejected }));
     } else {
       const rejected = await NewStarUser.find({
         isVerified: "REJECTED",
         createdAt: {
           $gte: from,
           $lte: to,
-        }
+        },
       });
       console.log(rejected);
       res.status(201).json(success(res.statusCode, "Rejected Users", rejected));
@@ -110,25 +112,27 @@ exports.rejectedUsers = async (req, res) => {
   }
 };
 
+// Counting of Pending Approved and Rejected Users -> Admin
+exports.usersCount = async (req, res) => {
+  try {
+    // const {PENDING,APPROVED,REJECTED} = req.body
+    // const pendings = await NewStarUser.find({ isVerified: "PENDING" }).count();
+    // const approved = await NewStarUser.find({ isVerified: "APPROVED" }).count();
+    // const rejected = await NewStarUser.find({ isVerified: "REJECTED" }).count();
+    const users = await NewStarUser.aggregate([
+      { $group: { _id: "$isVerified", count: { $sum: 1 } } },
+      // { $count: "isVerified" },
+    ]);
 
-// // Counting of Pending Approved and Rejected Users -> Admin
-// exports.totalUsers = async(req,res)=>{
-//   try {
-//     const UsersCount = await NewStarUser.aggregate([
-//       { $match: { isVerified: "PENDING" }},
-//       {$count:"PENDINGS"},
-//       { $match: { isVerified: "REJECTED" }},
-//       {$count:"Rejected"},
-//       { $match: { isVerified: "REJECTED" }},
-//       {$count:"Rejected"}
-//     ])
-//     res.status(201).json(success(res.statusCode,"Number of Users",UsersCount))
-//   } catch (err) {
-//     console.log(err);
-//     res.status(401).json(error("Error while fetching number of Users"))
-//   }
-// }
-
+    // res.status(201).json(success(res.statusCode,"Number of Users",{pendings,approved,rejected}))
+    res.status(201).json(success(res.statusCode, "Number of Users", users));
+  } catch (err) {
+    console.log(err);
+    res
+      .status(401)
+      .json(error("Error while fetching number of Users", res.statusCode));
+  }
+};
 
 // Admin authorised user
 exports.adminAuthorisedUser = async (req, res) => {
@@ -206,7 +210,6 @@ exports.userStatus = async (req, res) => {
     res.status(401).json(error("Error while adding user", res.statusCode));
   }
 };
-
 
 // import Users from CSV file -> Admin
 exports.importUsers = async (req, res) => {

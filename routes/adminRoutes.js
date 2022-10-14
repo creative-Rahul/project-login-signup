@@ -39,7 +39,7 @@ const {
     addUser,
     userStatus,
     editUserProfile,
-    totalUsers,
+    usersCount,
 } = require("../controllers/adminController/userManagement");
 
 const tokenAdminAuthorisation = require("../middleware/adminAuth");
@@ -70,7 +70,7 @@ router.post("/pendingUsers", tokenAdminAuthorisation, pendingUsers);
 
 router.post("/rejectedUsers", tokenAdminAuthorisation, rejectedUsers);
 
-router.get("/totalUsers",  totalUsers);
+router.get("/usersCount", tokenAdminAuthorisation,  usersCount);
 
 router.post("/getUser/:_id", tokenAdminAuthorisation, getUser);
 
