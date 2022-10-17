@@ -33,13 +33,11 @@ const {
     adminAuthorisedUser,
     rejectUser,
     getUser,
-    pendingUsers,
-    approvedUsers,
-    rejectedUsers,
     addUser,
     userStatus,
     editUserProfile,
     usersCount,
+    allUsersList,
 } = require("../controllers/adminController/userManagement");
 
 const tokenAdminAuthorisation = require("../middleware/adminAuth");
@@ -64,11 +62,7 @@ router.post("/editProfile", tokenAdminAuthorisation, upload.any(), editProfile);
 
 router.get("/getAllUsers", tokenAdminAuthorisation, getAllUsers);
 
-router.post("/approvedUsers", tokenAdminAuthorisation, approvedUsers);
-
-router.post("/pendingUsers", tokenAdminAuthorisation, pendingUsers);
-
-router.post("/rejectedUsers", tokenAdminAuthorisation, rejectedUsers);
+router.post("/allUsersList", tokenAdminAuthorisation, allUsersList);
 
 router.get("/usersCount", tokenAdminAuthorisation,  usersCount);
 

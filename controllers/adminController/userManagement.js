@@ -1,6 +1,5 @@
 const csv = require("csvtojson");
 const validator = require("validator");
-const { count } = require("../../models/userModels/userRegister");
 const NewStarUser = require("../../models/userModels/userRegister");
 const { error, success } = require("../../service_response/userApiResponse");
 
@@ -17,28 +16,33 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// Approved users User Management -> Admin
-exports.approvedUsers = async (req, res) => {
-  const { from, to } = req.body;
-  console.log(req.body);
+// PENDING APPROVED & RETURNED users  -> User Management -> Admin
+exports.allUsersList = async (req, res) => {
+  const { type, from, to } = req.body;
+  // console.log(req.body);
+  if (!type) {
+    return res
+      .status(201)
+      .json(error("Please provide user type", res.statusCode));
+  }
   try {
     if (!from || !to) {
-      const approved = await NewStarUser.aggregate([
-        { $match: { isVerified: "APPROVED" } },
+      const usersList = await NewStarUser.aggregate([
+        { $match: { isVerified: type } },
         { $project: { password: 0 } },
       ]);
-      console.log(approved);
-      res.status(201).json(success(res.statusCode, "Approved Users", approved));
+      // console.log(usersList);
+      res.status(201).json(success(res.statusCode, `${type} users`, usersList));
     } else {
-      const approved = await NewStarUser.find({
-        isVerified: "APPROVED",
+      const usersList = await NewStarUser.find({
+        isVerified: type,
         createdAt: {
           $gte: from,
           $lte: to,
         },
       });
-      console.log(approved);
-      res.status(201).json(success(res.statusCode, "Approved Users", approved));
+      // console.log(usersList);
+      res.status(201).json(success(res.statusCode, `${type} users`, usersList));
     }
   } catch (err) {
     console.log(err);
@@ -48,83 +52,12 @@ exports.approvedUsers = async (req, res) => {
   }
 };
 
-// Pending users User Management -> Admin
-exports.pendingUsers = async (req, res) => {
-  const { from, to } = req.body;
-  console.log(req.body);
-  try {
-    if (!from || !to) {
-      const pendings = await NewStarUser.aggregate([
-        { $match: { isVerified: "PENDING" } },
-        { $project: { password: 0 } },
-      ]);
-      // console.log( pendings);
-      res.status(201).json(success(res.statusCode, "Pending Users", pendings));
-    } else {
-      const pendings = await NewStarUser.find({
-        isVerified: "PENDING",
-        createdAt: {
-          $gte: from,
-          $lte: to,
-        },
-      });
-      console.log(pendings);
-      res.status(201).json(success(res.statusCode, "Pending Users", pendings));
-    }
-  } catch (err) {
-    console.log(err);
-    res
-      .status(401)
-      .json(error("Error while fetching pending users", res.statusCode));
-  }
-};
-
-// Rejected users User Management -> Admin
-exports.rejectedUsers = async (req, res) => {
-  const { from, to } = req.body;
-  console.log(req.body);
-  try {
-    if (!from || !to) {
-      const rejected = await NewStarUser.aggregate([
-        { $match: { isVerified: "REJECTED" } },
-        { $project: { password: 0 } },
-      ]);
-      // console.log(rejected);
-      res
-        .status(201)
-        .json(success(res.statusCode, "Rejected Users", { rejected }));
-    } else {
-      const rejected = await NewStarUser.find({
-        isVerified: "REJECTED",
-        createdAt: {
-          $gte: from,
-          $lte: to,
-        },
-      });
-      console.log(rejected);
-      res.status(201).json(success(res.statusCode, "Rejected Users", rejected));
-    }
-  } catch (err) {
-    console.log(err);
-    res
-      .status(401)
-      .json(error("Error while fetching Rejected users", res.statusCode));
-  }
-};
-
 // Counting of Pending Approved and Rejected Users -> Admin
 exports.usersCount = async (req, res) => {
   try {
-    // const {PENDING,APPROVED,REJECTED} = req.body
-    // const pendings = await NewStarUser.find({ isVerified: "PENDING" }).count();
-    // const approved = await NewStarUser.find({ isVerified: "APPROVED" }).count();
-    // const rejected = await NewStarUser.find({ isVerified: "REJECTED" }).count();
     const users = await NewStarUser.aggregate([
       { $group: { _id: "$isVerified", count: { $sum: 1 } } },
-      // { $count: "isVerified" },
     ]);
-
-    // res.status(201).json(success(res.statusCode,"Number of Users",{pendings,approved,rejected}))
     res.status(201).json(success(res.statusCode, "Number of Users", users));
   } catch (err) {
     console.log(err);
@@ -196,15 +129,27 @@ exports.rejectUser = async (req, res) => {
 
 // Suspend or Resume User -> Admin
 exports.userStatus = async (req, res) => {
+  const { status } = req.body;
+  if (!status) {
+    return res
+      .status(201)
+      .json(error("Please provide new status", res.statusCode));
+  }
   try {
-    const { status } = req.body;
     const user = await NewStarUser.findById(req.params._id).select("status");
     user.status = status;
     await user.save();
     // console.log(user);
-    res
-      .status(201)
-      .json(success(res.statusCode, "User added successfully", user));
+    if (user.status == true) {
+      return res
+        .status(201)
+        .json(success(res.statusCode, `User enabled successfully`, user));
+    }
+    if (user.status == false) {
+      return res
+        .status(201)
+        .json(success(res.statusCode, `User disabled successfully`, user));
+    }
   } catch (err) {
     console.log(err);
     res.status(401).json(error("Error while adding user", res.statusCode));
@@ -214,9 +159,19 @@ exports.userStatus = async (req, res) => {
 // import Users from CSV file -> Admin
 exports.importUsers = async (req, res) => {
   // console.log(req.files)
-  const csvFilePath = req.files[0].path;
+  if (!req.files) {
+    return res
+      .status(201)
+      .json(error("Please provide Excel Sheet", res.statusCode));
+  }
   var userNameAndPassword = [];
   try {
+    if (req.files.length === 0) {
+      return res
+        .status(201)
+        .json(error("Please provide Excel Sheet", res.statusCode));
+    }
+    const csvFilePath = req.files[0].path;
     const jsonArray = await csv().fromFile(csvFilePath);
     // console.log(jsonArray);
     jsonArray.forEach((jsonArray) => {
@@ -224,6 +179,7 @@ exports.importUsers = async (req, res) => {
       for (let key in jsonArray) {
         const randomPass = Math.floor(10000 + Math.random() * 90000);
         jsonArray["password"] = randomPass;
+        jsonArray["isVerified"] = "APPROVED";
       }
       // console.log({
       //     email: jsonArray.email,
@@ -259,7 +215,6 @@ exports.importUsers = async (req, res) => {
 exports.addUser = async (req, res) => {
   try {
     // console.log(req.files)
-    // console.log(req.files[1])
     const {
       companyName,
       dba,
@@ -374,15 +329,15 @@ exports.editUserProfile = async (req, res) => {
       quotation,
     } = req.body;
 
-    console.log(req.body);
-    console.log(req.files.length);
+    // console.log(req.body);
+    // console.log(req.files.length);
 
-    const federalTaxId = req.files[0]?.fieldname;
+    // const federalTaxId = req.files[0]?.fieldname;
     // console.log(federalTaxId);
-    const businessLicense = req.files[1]?.fieldname;
-    const salesTaxId = req.files[2]?.fieldname;
-    const accountOwnerId = req.files[3]?.fieldname;
-    const tobaccoLicence = req.files[4]?.fieldname;
+    // const businessLicense = req.files[1]?.fieldname;
+    // const salesTaxId = req.files[2]?.fieldname;
+    // const accountOwnerId = req.files[3]?.fieldname;
+    // const tobaccoLicence = req.files[4]?.fieldname;
 
     const editUser = await NewStarUser.findById(req.params._id);
 
