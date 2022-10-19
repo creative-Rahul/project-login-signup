@@ -117,11 +117,11 @@ router.get("/allProducts", allProducts);
 
 router.post("/cms/addSlide",tokenAdminAuthorisation, upload.any(), addSlide);
 
-router.post("/cms/editSlide",tokenAdminAuthorisation, upload.any(), editSlide);
+router.post("/cms/editSlide/:_id",tokenAdminAuthorisation, upload.any(), editSlide);
 
 router.get("/cms/getAllSlides",tokenAdminAuthorisation, getAllSlides);
 
-router.post("/cms/deleteSlide",tokenAdminAuthorisation, deleteSlide);
+router.post("/cms/deleteSlide/:_id",tokenAdminAuthorisation, deleteSlide);
 
 router.post("/cms/addAbout",tokenAdminAuthorisation, addAbout);
 

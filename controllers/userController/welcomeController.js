@@ -1,5 +1,5 @@
 const { error, success } = require("../../service_response/userApiResponse");
-const { PrivacyPolicy, TermsAndConditions } = require("../../models/adminModels/cmsSchema");
+const { PrivacyPolicy, TermsAndConditions, About } = require("../../models/adminModels/cmsSchema");
 
 exports.privacyPolicy = async (req, res) => {
   try {
@@ -22,4 +22,14 @@ exports.tAndC = async(req,res)=>{
         console.log(err);
         res.status(401).json(error("Error fetching Terms and Conditons",res.statusCode))
     }
+}
+
+exports.aboutUs = async(req,res)=>{
+  try {
+    const about = await About.find()
+    res.status(201).json(success(res.statusCode,"About Us",about))
+} catch (err) {
+    console.log(err);
+    res.status(401).json(error("Error fetching About Us",res.statusCode))
+}
 }

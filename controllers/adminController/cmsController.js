@@ -6,7 +6,6 @@ const {
   PrivacyPolicy,
 } = require("../../models/adminModels/cmsSchema");
 
-
 // Adding Slides
 exports.addSlide = async (req, res) => {
   const { title, description } = req.body;
@@ -26,11 +25,11 @@ exports.addSlide = async (req, res) => {
       .json(error("Please upload Banner Image", res.statusCode));
   }
   try {
-    const counter = await HomeBanner.find().count()+1;
+    const counter = (await HomeBanner.find().count()) + 1;
     // console.log(counter);
     const banner = req.files[0].path;
     const add = new HomeBanner({
-      slide:`Slide${counter}`,
+      slide: `Slide${counter}`,
       title: title,
       description: description,
       banner: banner,
@@ -48,7 +47,7 @@ exports.addSlide = async (req, res) => {
 
 // Edit Slides
 exports.editSlide = async (req, res) => {
-  const {slide, title, description } = req.body;
+  const { slide, title, description } = req.body;
   if (!title) {
     return res
       .status(201)
@@ -65,7 +64,7 @@ exports.editSlide = async (req, res) => {
       .json(error("Please upload Banner Image", res.statusCode));
   }
   try {
-    const edit = await HomeBanner.findOne({ slide: slide });
+    const edit = await HomeBanner.findById(req.params._id);
     edit.title = title;
     edit.description = description;
     edit.banner = `${req.files[0].destination.replace("/public/images")}/${
@@ -74,7 +73,7 @@ exports.editSlide = async (req, res) => {
     await edit.save();
     res
       .status(201)
-      .json(success(res.statusCode, "Slide one added Successfully", edit));
+      .json(success(res.statusCode, "Slide Modified Successfully", edit));
   } catch (err) {
     console.log(err);
     res.status(201).json(error("Error in modifying Slide One", res.statusCode));
@@ -82,36 +81,34 @@ exports.editSlide = async (req, res) => {
 };
 
 // Delete Slides except slide 1
-exports.deleteSlide = async(req,res)=>{
-  const {slide}= req.body
-  if(!slide){
-    return res.status(201).json(error("Please provide Slide Number",res.statusCode))
-  }
+exports.deleteSlide = async (req, res) => {
   try {
-    const deleteSlide = await HomeBanner.findOneAndDelete({slide:slide})
-    if(deleteSlide.slide == "Slide1"){
-      return res.status(201).json(error("You are not allowed to delete Slide 1",res.statusCode))
+    const deleteSlide = await HomeBanner.findById(req.params._id);
+    if (deleteSlide.slide == "Slide1") {
+      return res
+        .status(201)
+        .json(error("You are not allowed to delete Slide 1", res.statusCode));
     }
-    res.status(201).json(success(res.statusCode,"Deletion Successful",deleteSlide))
+    await deleteSlide.delete()
+    res
+      .status(201)
+      .json(success(res.statusCode, "Deletion Successful", deleteSlide));
   } catch (err) {
     console.log(err);
-    res.status(401).json(error("Error in slide deletion",res.statusCode))
+    res.status(401).json(error("Error in slide deletion", res.statusCode));
   }
-}
-
+};
 
 //Get all the slides
-exports.getAllSlides = async(req,res)=>{
+exports.getAllSlides = async (req, res) => {
   try {
-    const slides = await HomeBanner.find()
-    res.status(201).json(success(res.statusCode,"Slides",slides))
+    const slides = await HomeBanner.find();
+    res.status(201).json(success(res.statusCode, "Slides", slides));
   } catch (err) {
     console.log(err);
-    res.status(401).json(error("Error in fetching Slides",res.statusCode))
+    res.status(401).json(error("Error in fetching Slides", res.statusCode));
   }
-}
-
-
+};
 
 // Adding -> About Us
 exports.addAbout = async (req, res) => {
@@ -135,7 +132,6 @@ exports.addAbout = async (req, res) => {
   }
 };
 
-
 // Edit about Us
 exports.editAbout = async (req, res) => {
   const { description } = req.body;
@@ -158,7 +154,6 @@ exports.editAbout = async (req, res) => {
   }
 };
 
-
 // Adding -> Terms and Conditions
 exports.addTnC = async (req, res) => {
   const { description } = req.body;
@@ -180,7 +175,6 @@ exports.addTnC = async (req, res) => {
     res.status(401).json(error(`Error in adding "About Us"`, res.statusCode));
   }
 };
-
 
 // Edit terms and Condition
 exports.editTnC = async (req, res) => {

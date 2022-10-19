@@ -27,7 +27,7 @@ const {
   updateOrder,
 } = require("../controllers/userController/orderController");
 const {
-  privacyPolicy, tAndC,
+  privacyPolicy, tAndC, aboutUs,
 } = require("../controllers/userController/welcomeController");
 
 router.get("/home", home);
@@ -71,6 +71,8 @@ router.post("/order/updateOrder", tokenAuthorisationUser, updateOrder);
 router.get("/welcome/tAndC", tAndC);
 
 router.get("/welcome/privacyPolicy", privacyPolicy);
+
+router.get("/welcome/aboutUs", aboutUs);
 
 
 
