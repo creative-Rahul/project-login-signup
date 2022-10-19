@@ -80,6 +80,7 @@ const newUserSchema = mongoose.Schema(
     otp: {
       type: Number,
     },
+    // Status to enable and disable the user id
     status: {
       type: Boolean,
       default: true,

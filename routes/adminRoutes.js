@@ -115,24 +115,24 @@ router.get("/allProducts", allProducts);
 
 // Content Management
 
-router.post("/cms/addSlide", upload.any(), addSlide);
+router.post("/cms/addSlide",tokenAdminAuthorisation, upload.any(), addSlide);
 
-router.post("/cms/editSlide", upload.any(), editSlide);
+router.post("/cms/editSlide",tokenAdminAuthorisation, upload.any(), editSlide);
 
-router.get("/cms/getAllSlides", getAllSlides);
+router.get("/cms/getAllSlides",tokenAdminAuthorisation, getAllSlides);
 
-router.post("/cms/deleteSlide", deleteSlide);
+router.post("/cms/deleteSlide",tokenAdminAuthorisation, deleteSlide);
 
-router.post("/cms/addAbout", addAbout);
+router.post("/cms/addAbout",tokenAdminAuthorisation, addAbout);
 
-router.post("/cms/editAbout", editAbout);
+router.post("/cms/editAbout",tokenAdminAuthorisation, editAbout);
 
-router.post("/cms/addTnC", addTnC);
+router.post("/cms/addTnC",tokenAdminAuthorisation, addTnC);
 
-router.post("/cms/editTnC", editTnC);
+router.post("/cms/editTnC",tokenAdminAuthorisation, editTnC);
 
-router.post("/cms/addPrivacyPolicy", addPrivacyPolicy);
+router.post("/cms/addPrivacyPolicy",tokenAdminAuthorisation, addPrivacyPolicy);
 
-router.post("/cms/editPrivacyPolicy", editPrivacyPolicy);
+router.post("/cms/editPrivacyPolicy",tokenAdminAuthorisation, editPrivacyPolicy);
 
 module.exports = router;

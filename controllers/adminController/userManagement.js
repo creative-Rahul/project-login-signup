@@ -178,17 +178,22 @@ exports.importUsers = async (req, res) => {
       });
     });
     try {
-      const importedData = await NewStarUser.create(jsonArray);
+      const importedData = await NewStarUser.create(jsonArray,function(err,results){
+        if(err){
+          console.log(err);
+          return res.status(201).json(error("Validation Failed",res.statusCode))
+        }
+        res.status(201).json(
+          success(res.statusCode, "Successfully Imported", {
+            results,
+            userNameAndPassword,
+          })
+        );
+      });
       // console.log(importedData);
-      res.status(201).json(
-        success(res.statusCode, "Successfully Imported", {
-          importedData,
-          userNameAndPassword,
-        })
-      );
     } catch (err) {
       console.log(err);
-      res.status(401).json(error("Validation Error", res.statusCode));
+      res.status(401).json(error("Something went wrong in Importing", res.statusCode));
     }
   } catch (err) {
     console.log(err);
