@@ -3,19 +3,6 @@ const validator = require("validator");
 const NewStarUser = require("../../models/userModels/userRegister");
 const { error, success } = require("../../service_response/userApiResponse");
 
-// View all users profile
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await NewStarUser.find().select("-password");
-    res
-      .status(201)
-      .json(success(res.statusCode, "All Users fetched Successfully", users));
-  } catch (err) {
-    console.log(err);
-    res.status(401).json(error("Error while fetching users", res.statusCode));
-  }
-};
-
 // PENDING APPROVED & RETURNED users  -> User Management -> Admin
 exports.allUsersList = async (req, res) => {
   const { type, from, to } = req.body;
@@ -67,6 +54,19 @@ exports.usersCount = async (req, res) => {
   }
 };
 
+// Get a User by Object _id -> admin
+exports.getUser = async (req, res) => {
+  try {
+    const user = await NewStarUser.findById(req.params._id);
+    res
+      .status(201)
+      .json(success(res.statusCode, "User fetched Successfully", user));
+  } catch (err) {
+    console.log(err);
+    res.status(401).json(error("Error while fetching user", res.statusCode));
+  }
+};
+
 // Admin authorised user
 exports.adminAuthorisedUser = async (req, res) => {
   try {
@@ -85,19 +85,6 @@ exports.adminAuthorisedUser = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(201).json(error("Error while authorising user", res.statusCode));
-  }
-};
-
-// Get a User by Object _id -> admin
-exports.getUser = async (req, res) => {
-  try {
-    const user = await NewStarUser.findById(req.params._id);
-    res
-      .status(201)
-      .json(success(res.statusCode, "User fetched Successfully", user));
-  } catch (err) {
-    console.log(err);
-    res.status(401).json(error("Error while fetching user", res.statusCode));
   }
 };
 
@@ -249,33 +236,8 @@ exports.addUser = async (req, res) => {
         .json(error("Email is already registered", res.statusCode));
     }
 
-    const federalTaxId = req.files[0].path;
-    const businessLicense = req.files[1].path;
-    const salesTaxId = req.files[2].path;
-    const accountOwnerId = req.files[3].path;
-    const tobaccoLicence = req.files[4]?.path;
-    if (!federalTaxId) {
-      return res
-        .status(200)
-        .json(error("Please upload federal Tax Id", res.statusCode));
-    }
-    if (!businessLicense) {
-      return res
-        .status(200)
-        .json(error("Please upload business License", res.statusCode));
-    }
-    if (!salesTaxId) {
-      return res
-        .status(200)
-        .json(error("Please upload sales Tax Id", res.statusCode));
-    }
-    if (!accountOwnerId) {
-      return res
-        .status(200)
-        .json(error("Please upload account Owner Id", res.statusCode));
-    }
-
     const password = Math.floor(10000 + Math.random() * 90000);
+    // const profileImage
 
     const newuser = new NewStarUser({
       companyName: companyName,
@@ -284,19 +246,61 @@ exports.addUser = async (req, res) => {
       city: city,
       state: state,
       zipcode: zipcode,
-      federalTaxId: federalTaxId,
-      businessLicense: businessLicense,
-      salesTaxId: salesTaxId,
-      tobaccoLicence: tobaccoLicence,
       firstName: firstName,
       lastName: lastName,
-      accountOwnerId: accountOwnerId,
       email: email,
       isVerified: "APPROVED",
       phoneNumber: phoneNumber,
       password: password,
     });
+    for (let i = 0; i < req.files.length; i++) {
+      if (req.files[i].fieldname == "profileImage") {
+        newuser.profileImage = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "federalTaxId") {
+        newuser.federalTaxId = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "businessLicense") {
+        newuser.businessLicense = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "salesTaxId") {
+        newuser.salesTaxId = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "accountOwnerId") {
+        newuser.accountOwnerId = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "tobaccoLicence") {
+        newuser.tobaccoLicence = req.files[i].path;
+      }
+    }
+    if (!newuser.profileImage) {
+      return res
+        .status(200)
+        .json(error("Please upload user Profile Image", res.statusCode));
+    }
+    if (!newuser.federalTaxId) {
+      return res
+        .status(200)
+        .json(error("Please upload federal Tax Id", res.statusCode));
+    }
+    if (!newuser.businessLicense) {
+      return res
+        .status(200)
+        .json(error("Please upload business License", res.statusCode));
+    }
+    if (!newuser.salesTaxId) {
+      return res
+        .status(200)
+        .json(error("Please upload sales Tax Id", res.statusCode));
+    }
+    if (!newuser.accountOwnerId) {
+      return res
+        .status(200)
+        .json(error("Please upload account Owner Id", res.statusCode));
+    }
+
     const registerd = await newuser.save();
+    // console.log(newuser);
     console.log("User's password -> " + password);
     res.status(201).json(
       success(res.statusCode, "Registered Successfully", {
@@ -327,17 +331,11 @@ exports.editUserProfile = async (req, res) => {
       email,
       phoneNumber,
       quotation,
+      heardAboutUs
     } = req.body;
 
     // console.log(req.body);
     // console.log(req.files.length);
-
-    // const federalTaxId = req.files[0]?.fieldname;
-    // console.log(federalTaxId);
-    // const businessLicense = req.files[1]?.fieldname;
-    // const salesTaxId = req.files[2]?.fieldname;
-    // const accountOwnerId = req.files[3]?.fieldname;
-    // const tobaccoLicence = req.files[4]?.fieldname;
 
     const editUser = await NewStarUser.findById(req.params._id);
 
@@ -374,7 +372,15 @@ exports.editUserProfile = async (req, res) => {
     if (quotation) {
       editUser.quotation = quotation;
     }
+    if (heardAboutUs) {
+      editUser.heardAboutUs = heardAboutUs;
+    }
     for (let i = 0; i < req.files.length; i++) {
+      if (req.files[i].fieldname == "profileImage") {
+        editUser.profileImage = `${req.files[i].destination.replace(
+          "./public/images"
+        )}/${req.files[i].filename}`;
+      }
       if (req.files[i].fieldname == "federalTaxId") {
         editUser.federalTaxId = `${req.files[i].destination.replace(
           "./public/images"

@@ -2,8 +2,7 @@ const validator = require("validator");
 const NewStarUser = require("../../models/userModels/userRegister");
 const Contact = require("../../models/contact");
 const { success, error } = require("../../service_response/userApiResponse");
-// const upload = require("../../middleware/upload")
-// const path = require("path")
+
 
 exports.contact = async (req, res) => {
   const { fullName, email, subject, messageTextArea } = req.body;
@@ -51,7 +50,7 @@ exports.register = async (req, res) => {
       email,
       phoneNumber,
       quotation,
-      heardAboutUs
+      heardAboutUs,
     } = req.body;
 
     if (!validator.isAlpha(firstName)) {
@@ -109,29 +108,65 @@ exports.register = async (req, res) => {
       city: city,
       state: state,
       zipcode: zipcode,
-      federalTaxId: federalTaxId,
-      businessLicense: businessLicense,
-      salesTaxId: salesTaxId,
-      tobaccoLicence: tobaccoLicence,
-      firstName: firstName + " " + lastName,
-      // lastName: lastName,
-      accountOwnerId: accountOwnerId,
+      // federalTaxId: federalTaxId,
+      // businessLicense: businessLicense,
+      // salesTaxId: salesTaxId,
+      // tobaccoLicence: tobaccoLicence,
+      // accountOwnerId: accountOwnerId,
+      firstName: firstName,
+      lastName: lastName,
       email: email,
       phoneNumber: phoneNumber,
       password: password,
       quotation: quotation,
-      heardAboutUs:heardAboutUs
+      heardAboutUs: heardAboutUs,
     });
+    for (let i = 0; i < req.files.length; i++) {
+      if (req.files[i].fieldname == "federalTaxId") {
+        newuser.federalTaxId = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "businessLicense") {
+        newuser.businessLicense = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "salesTaxId") {
+        newuser.salesTaxId = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "accountOwnerId") {
+        newuser.accountOwnerId = req.files[i].path;
+      }
+      if (req.files[i].fieldname == "tobaccoLicence") {
+        newuser.tobaccoLicence = req.files[i].path;
+      }
+    }
+    if (!newuser.federalTaxId) {
+      return res
+        .status(200)
+        .json(error("Please upload federal Tax Id", res.statusCode));
+    }
+    if (!newuser.businessLicense) {
+      return res
+        .status(200)
+        .json(error("Please upload business License", res.statusCode));
+    }
+    if (!newuser.salesTaxId) {
+      return res
+        .status(200)
+        .json(error("Please upload sales Tax Id", res.statusCode));
+    }
+    if (!newuser.accountOwnerId) {
+      return res
+        .status(200)
+        .json(error("Please upload account Owner Id", res.statusCode));
+    }
+    // console.log(newuser);
     const registerd = await newuser.save();
     // console.log("User's password -> " + password);
-    res
-      .status(201)
-      .json(
-        success(res.statusCode, "Registered Successfully", {
-          registerd,
-          password,
-        })
-      );
+    res.status(201).json(
+      success(res.statusCode, "Registered Successfully", {
+        registerd,
+        password,
+      })
+    );
   } catch (err) {
     console.log(err);
     res.status(401).json(error("Wrong input", res.statusCode));
@@ -178,7 +213,7 @@ exports.login = async (req, res) => {
       .json(success(res.statusCode, "Logged In", { verifyUser, token }));
   } catch (err) {
     console.log(err);
-    res.status(401).json(error("Error in Loggin in", res.statusCode));
+    res.status(401).json(error("Error in Logging in", res.statusCode));
   }
 };
 
