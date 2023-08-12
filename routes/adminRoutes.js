@@ -8,12 +8,12 @@ const {
   createImportFilePath,
 } = require("../middleware/importUsers");
 
-const {
-  addProduct,
-  updateProduct,
-  allProducts,
-  deleteProduct,
-} = require("../controllers/adminController/productControl");
+// const {
+//   addProduct,
+//   updateProduct,
+//   allProducts,
+//   deleteProduct,
+// } = require("../controllers/adminController/productControl");
 
 const {
   register,
@@ -105,34 +105,43 @@ router.post(
   importUsers
 );
 
-router.post("/addProduct", tokenAdminAuthorisation, addProduct);
+// router.post("/addProduct", tokenAdminAuthorisation, addProduct);
 
-router.post("/updateProduct", tokenAdminAuthorisation, updateProduct);
+// router.post("/updateProduct", tokenAdminAuthorisation, updateProduct);
 
-router.delete("/deleteProduct", tokenAdminAuthorisation, deleteProduct);
+// router.delete("/deleteProduct", tokenAdminAuthorisation, deleteProduct);
 
-router.get("/allProducts", allProducts);
+// router.get("/allProducts", allProducts);
 
 // Content Management
 
-router.post("/cms/addSlide",tokenAdminAuthorisation, upload.any(), addSlide);
+router.post("/cms/addSlide", tokenAdminAuthorisation, upload.any(), addSlide);
 
-router.post("/cms/editSlide/:_id",tokenAdminAuthorisation, upload.any(), editSlide);
+router.post(
+  "/cms/editSlide/:_id",
+  tokenAdminAuthorisation,
+  upload.any(),
+  editSlide
+);
 
-router.get("/cms/getAllSlides",tokenAdminAuthorisation, getAllSlides);
+router.get("/cms/getAllSlides", tokenAdminAuthorisation, getAllSlides);
 
-router.post("/cms/deleteSlide/:_id",tokenAdminAuthorisation, deleteSlide);
+router.post("/cms/deleteSlide/:_id", tokenAdminAuthorisation, deleteSlide);
 
-router.post("/cms/addAbout",tokenAdminAuthorisation, addAbout);
+router.post("/cms/addAbout", tokenAdminAuthorisation, addAbout);
 
-router.post("/cms/editAbout",tokenAdminAuthorisation, editAbout);
+router.post("/cms/editAbout", tokenAdminAuthorisation, editAbout);
 
-router.post("/cms/addTnC",tokenAdminAuthorisation, addTnC);
+router.post("/cms/addTnC", tokenAdminAuthorisation, addTnC);
 
-router.post("/cms/editTnC",tokenAdminAuthorisation, editTnC);
+router.post("/cms/editTnC", tokenAdminAuthorisation, editTnC);
 
-router.post("/cms/addPrivacyPolicy",tokenAdminAuthorisation, addPrivacyPolicy);
+router.post("/cms/addPrivacyPolicy", tokenAdminAuthorisation, addPrivacyPolicy);
 
-router.post("/cms/editPrivacyPolicy",tokenAdminAuthorisation, editPrivacyPolicy);
+router.post(
+  "/cms/editPrivacyPolicy",
+  tokenAdminAuthorisation,
+  editPrivacyPolicy
+);
 
 module.exports = router;
