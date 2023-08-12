@@ -25,7 +25,11 @@ app.use("/user", userRoutes);
 
 app.use("/api/admin", adminRoutes);
 
-app.get("/", async (req, res) => {
+app.get("/", (req, res) => {
+  res.status(201).send("Hello from server");
+});
+app.get("/home", (req, res) => {
+  console.log("Hello server");
   res.status(201).send("Hello from server");
 });
 
