@@ -77,7 +77,7 @@ exports.register = async (req, res) => {
     const businessLicense = req.files[1].path;
     const salesTaxId = req.files[2].path;
     const accountOwnerId = req.files[3].path;
-    const tobaccoLicence = req.files[4]?.path;
+    const tobaccoLicence = req.files[4].path;
     if (!federalTaxId) {
       return res
         .status(200)
